@@ -1,0 +1,9 @@
+[submodule "martian-data"]
+	path = martian-data
+	url = gogs@git.martianoids.com:martianoids/martian-data.git
+[submodule "martian-http"]
+	path = martian-http
+	url = gogs@git.martianoids.com:martianoids/martian-http.git
+[submodule "fontawesome6"]
+	path = fontawesome6
+	url = git@github.com:bean-frog/FontAwesome-Pro-6.4.0.git
