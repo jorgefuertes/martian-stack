@@ -54,7 +54,7 @@ function startContainer {
 if [[ "$1" == "help" ]]; then helpAndExit; fi
 if [[ "$1" == "" ]]; then echo "Missing container name"; helpAndExit; fi
 if ! [[ "$1" =~ ^mongo|redis$ ]]; then echo "Unknown container name"; helpAndExit; fi
-if [[ "$2" == "" ]]; then echo "MIssing command"; helpAndExit; fi
+if [[ "$2" == "" ]]; then echo "Missing command"; helpAndExit; fi
 if ! [[ "$2" =~ ^start|stop|status$ ]]; then echo "Unknown command"; helpAndExit; fi
 if [[ "$(basename $PWD)" -ne "martian-stack" ]]
 then
