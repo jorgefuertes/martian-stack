@@ -2,9 +2,10 @@ package helper_test
 
 import (
 	"fmt"
+	"io"
 	"testing"
 
-	"git.martianoids.com/martianoids/martian-stack/internal/helper"
+	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -34,6 +35,6 @@ func TestHelperWriter(t *testing.T) {
 
 	line, err = w.ReadString()
 	require.Error(t, err)
-	assert.ErrorIs(t, err, helper.ErrNoMoreLines)
+	assert.ErrorIs(t, err, io.EOF)
 	assert.Empty(t, line)
 }

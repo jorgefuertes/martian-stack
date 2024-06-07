@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/internal/helper"
+	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/cache/redis"
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/mongodb"

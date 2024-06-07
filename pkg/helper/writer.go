@@ -1,14 +1,16 @@
 package helper
 
 import (
-	"errors"
+	"io"
 	"slices"
 )
 
-var ErrNoMoreLines = errors.New("no more lines to read")
-
 type Writer struct {
 	lines [][]byte
+}
+
+func NewWriter() *Writer {
+	return &Writer{lines: make([][]byte, 0)}
 }
 
 func (w *Writer) Write(data []byte) (n int, err error) {
@@ -16,17 +18,13 @@ func (w *Writer) Write(data []byte) (n int, err error) {
 		data = slices.Delete(data, len(data)-1, len(data))
 	}
 	w.lines = append(w.lines, data)
-    return len(data), nil
-}
-
-func NewWriter() *Writer {
-	return &Writer{lines: make([][]byte, 0)}
+	return len(data), nil
 }
 
 // read lines one by one, deleting them
 func (w *Writer) Read() ([]byte, error) {
 	if len(w.lines) == 0 {
-		return []byte{}, ErrNoMoreLines
+		return []byte{}, io.EOF
 	}
 	line := w.lines[0]
 	w.lines = slices.Delete(w.lines, 0, 1)

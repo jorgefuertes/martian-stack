@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/internal/helper"
+	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
 
 	"github.com/stretchr/testify/assert"

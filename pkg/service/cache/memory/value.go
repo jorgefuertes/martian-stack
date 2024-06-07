@@ -3,8 +3,6 @@ package memory
 import (
 	"fmt"
 	"strconv"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type value string
@@ -37,8 +35,4 @@ func (v value) float64() (float64, error) {
 
 func (v value) bytes() []byte {
 	return []byte(v.String())
-}
-
-func (v value) objectID() (primitive.ObjectID, error) {
-	return primitive.ObjectIDFromHex(v.String())
 }
