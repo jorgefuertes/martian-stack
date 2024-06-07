@@ -3,10 +3,13 @@ package logger
 import (
 	"io"
 	"log/slog"
+	"os"
 )
 
-type Format uint8
-type Level slog.Level
+type (
+	Format uint8
+	Level  slog.Level
+)
 
 func (level Level) Level() slog.Level { return slog.Level(level) }
 
@@ -36,6 +39,10 @@ type Service struct {
 
 func New(wr io.Writer, format Format, level Level) *Service {
 	return &Service{handler: newHandlerFor(wr, format, level)}
+}
+
+func NewWithDebugToStdout() *Service {
+	return &Service{handler: newHandlerFor(os.Stdout, TextFormat, LevelDebug)}
 }
 
 func newHandlerFor(wr io.Writer, format Format, level Level) slog.Handler {
