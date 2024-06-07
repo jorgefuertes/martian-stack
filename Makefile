@@ -12,6 +12,6 @@ status-dev:
 	scripts/pod.sh mongo status
 	scripts/pod.sh redis status
 
-test:
-	scripts/test.sh martian-data
-	scripts/test.sh martian-http
+test: start-dev
+	go test ./...
+	make stop-dev
