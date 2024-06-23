@@ -1,6 +1,6 @@
 module git.martianoids.com/martianoids/martian-stack
 
-go 1.22.3
+go 1.22.4
 
 require (
 	github.com/creasty/defaults v1.7.0

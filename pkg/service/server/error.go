@@ -1,22 +1,22 @@
 package server
 
 type HttpError struct {
-	code int
-	msg  string
+	Code int    `json:"code"`
+	Msg  string `json:"msg"`
 }
 
 func (e HttpError) Error() string {
-	return e.msg
+	return e.Msg
 }
 
 func NewHttpError(code int, err error) HttpError {
-	return HttpError{code: code, msg: err.Error()}
+	return HttpError{Code: code, Msg: err.Error()}
 }
 
 func (e *HttpError) Status() int {
-	return e.code
+	return e.Code
 }
 
 func (e *HttpError) IsError() bool {
-	return e.code >= 400
+	return e.Code >= 400
 }
