@@ -34,12 +34,16 @@ func (c Ctx) Next() error {
 	return c.handlers[c.next-1](c)
 }
 
-func (c Ctx) setHeader(key, value string) {
+func (c Ctx) SetHeader(key, value string) {
 	c.wr.Header().Add(key, value)
 }
 
 func (c Ctx) GetRequestHeader(key string) string {
 	return c.req.Header.Get(textproto.CanonicalMIMEHeaderKey(key))
+}
+
+func (c Ctx) Method() string {
+	return c.req.Method
 }
 
 func (c Ctx) Accept() string {
@@ -51,11 +55,11 @@ func (c Ctx) AcceptsJSON() bool {
 }
 
 func (c Ctx) SetContentType(contentType string) {
-	c.setHeader(HeaderContentType, contentType)
+	c.SetHeader(HeaderContentType, contentType)
 }
 
 func (c Ctx) WithHeader(key, value string) Ctx {
-	c.setHeader(key, value)
+	c.SetHeader(key, value)
 
 	return c
 }
@@ -82,7 +86,7 @@ func (c Ctx) SendString(s string) error {
 // set content-type as application/html and write marshalled object as json string
 // set status to http.StatusOK if no prior code is set
 func (c Ctx) SendJSON(obj any) error {
-	c.setHeader(HeaderContentType, MIMEApplicationJSON)
+	c.SetHeader(HeaderContentType, MIMEApplicationJSON)
 	b, err := json.Marshal(obj)
 	if err != nil {
 		return err
@@ -95,8 +99,8 @@ func (c Ctx) SendJSON(obj any) error {
 // Content-Disposition: attachment; filename="logo.png"
 // Status: http.StatusOK if no prior code is set
 func (c Ctx) SendAttachment(filename string, contents *bytes.Buffer) error {
-	c.setHeader(HeaderContentType, mime.TypeByExtension(filename))
-	c.setHeader(HeaderContentDisposition, "attachment; filename="+filename)
+	c.SetHeader(HeaderContentType, mime.TypeByExtension(filename))
+	c.SetHeader(HeaderContentDisposition, "attachment; filename="+filename)
 
 	return c.Write(contents.Bytes())
 }

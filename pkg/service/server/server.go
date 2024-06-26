@@ -18,11 +18,11 @@ type Server struct {
 	errorHandler ErrorHandler
 }
 
-func New(host, port string, timeoutSeconds int, log *logger.Service) *Server {
+func New(host, port string, timeoutSeconds int, log *logger.Service, corsOptions CorsOptions) *Server {
 	t := time.Second * time.Duration(timeoutSeconds)
 	mux := http.NewServeMux()
 
-	srv := &http.Server{
+	httpSrv := &http.Server{
 		Addr:              host + ":" + port,
 		Handler:           mux,
 		ReadTimeout:       t,
@@ -31,8 +31,9 @@ func New(host, port string, timeoutSeconds int, log *logger.Service) *Server {
 	}
 
 	return &Server{
-		srv:          srv,
+		srv:          httpSrv,
 		mux:          mux,
+		handlers:     []Handler{newCorsHandler(corsOptions)},
 		errorHandler: defaultErrorHandler,
 	}
 }

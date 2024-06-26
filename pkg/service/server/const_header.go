@@ -24,15 +24,17 @@ const (
 
 // Web Security
 const (
-	HeaderXXSSProtection            = "X-XSS-Protection"             // This header helps prevent reflected cross-site scripting (XSS) attacks by stopping pages from loading when they detect them. However, it is not recommended to use this header, as it can create XSS vulnerabilities in otherwise safe websites.
-	HeaderXFrameOptions             = "X-Frame-Options"              // This header helps prevent clickjacking attacks by stopping a page from loading within a frame or iframe.
-	HeaderXContentTypeOptions       = "X-Content-Type-Options"       // This header helps prevent MIME type sniffing attacks by stopping browsers from guessing the MIME type of a resource.
-	HeaderReferrerPolicy            = "Referrer-Policy"              // This header controls how much referrer information is sent with requests.
-	HeaderSetCookie                 = "Set-Cookie"                   // This header is used to send cookies from the server to the user agent.
-	HeaderStrictTransportSecurity   = "Strict-Transport-Security"    // (HSTS) This header tells a website to only be accessed using HTTPS.
-	HeaderExpectCT                  = "Expect-CT"                    // This header is used to report Certificate Transparency (CT) requirements. It is not recommended to use this header, as it is being phased out.
-	HeaderContentSecurityPolicy     = "Content-Security-Policy"      // (CSP) This header helps mitigate XSS and data injection attacks by specifying the origins of content that can be loaded on a website.
-	HeaderAccessControlAllowOrigin  = "Access-Control-Allow-Origin"  // (CORS) This header relaxes the Same Origin Policy (SOP) by allowing certain origins to access resources from a website.
+	HeaderXXSSProtection            = "X-XSS-Protection"            // This header helps prevent reflected cross-site scripting (XSS) attacks by stopping pages from loading when they detect them. However, it is not recommended to use this header, as it can create XSS vulnerabilities in otherwise safe websites.
+	HeaderXFrameOptions             = "X-Frame-Options"             // This header helps prevent clickjacking attacks by stopping a page from loading within a frame or iframe.
+	HeaderXContentTypeOptions       = "X-Content-Type-Options"      // This header helps prevent MIME type sniffing attacks by stopping browsers from guessing the MIME type of a resource.
+	HeaderReferrerPolicy            = "Referrer-Policy"             // This header controls how much referrer information is sent with requests.
+	HeaderSetCookie                 = "Set-Cookie"                  // This header is used to send cookies from the server to the user agent.
+	HeaderStrictTransportSecurity   = "Strict-Transport-Security"   // (HSTS) This header tells a website to only be accessed using HTTPS.
+	HeaderExpectCT                  = "Expect-CT"                   // This header is used to report Certificate Transparency (CT) requirements. It is not recommended to use this header, as it is being phased out.
+	HeaderContentSecurityPolicy     = "Content-Security-Policy"     // (CSP) This header helps mitigate XSS and data injection attacks by specifying the origins of content that can be loaded on a website.
+	HeaderAccessControlAllowOrigin  = "Access-Control-Allow-Origin" // (CORS) This header relaxes the Same Origin Policy (SOP) by allowing certain origins to access resources from a website.
+	HeaderAccessControlAllowMethods = "Access-Control-Allow-Methods"
+	HeaderAccessControlAllowHeaders = "Access-Control-Allow-Headers"
 	HeaderCrossOriginOpenerPolicy   = "Cross-Origin-Opener-Policy"   // (COOP) This header helps prevent attacks like Spectre by stopping a top-level document from sharing a browsing context group with cross-origin documents.
 	HeaderCrossOriginEmbedderPolicy = "Cross-Origin-Embedder-Policy" // (COEP) This header helps prevent attacks like Spectre by stopping a document from loading any cross-origin resources that don't explicitly grant the document permission.
 	HeaderCrossOriginResourcePolicy = "Cross-Origin-Resource-Policy" // (CORP) This header helps prevent attacks like Spectre by controlling the set of origins that are allowed to load a resource.
