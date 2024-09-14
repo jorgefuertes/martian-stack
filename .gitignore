@@ -1,2 +1,4 @@
 *.code-workspace
 /volumes
+.zed
+.trunk
