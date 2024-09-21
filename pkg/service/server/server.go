@@ -1,14 +1,9 @@
 package server
 
 import (
+	"context"
 	"net/http"
 	"time"
-
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
-)
-
-type (
-	Handler func(c Ctx) error
 )
 
 type Server struct {
@@ -18,7 +13,9 @@ type Server struct {
 	errorHandler ErrorHandler
 }
 
-func New(host, port string, timeoutSeconds int, log *logger.Service, corsOptions CorsOptions) *Server {
+const closeTimeoutSeconds = 30
+
+func New(host, port string, timeoutSeconds int) *Server {
 	t := time.Second * time.Duration(timeoutSeconds)
 	mux := http.NewServeMux()
 
@@ -33,7 +30,7 @@ func New(host, port string, timeoutSeconds int, log *logger.Service, corsOptions
 	return &Server{
 		srv:          httpSrv,
 		mux:          mux,
-		handlers:     []Handler{newCorsHandler(corsOptions)},
+		handlers:     []Handler{},
 		errorHandler: defaultErrorHandler,
 	}
 }
@@ -42,16 +39,27 @@ func (s *Server) Start() error {
 	return s.srv.ListenAndServe()
 }
 
+func (s *Server) Stop() error {
+	ctx, cancel := context.WithTimeout(context.Background(), closeTimeoutSeconds*time.Second)
+	defer cancel()
+	return s.srv.Shutdown(ctx)
+}
+
 func (s *Server) Use(mw ...Handler) {
 	s.handlers = append(s.handlers, mw...)
 }
 
 func (s *Server) Route(method, path string, h Handler) {
 	s.mux.HandleFunc(method+" "+path, func(w http.ResponseWriter, r *http.Request) {
-		c := newCtx(w, r, s.handlers...)
+		c := NewCtx(w, r, append(s.handlers, h)...)
+
 		// execute all the handlers in a "next" chain
 		if err := c.Next(); err != nil {
 			s.errorHandler(c, err)
 		}
 	})
+}
+
+func (s *Server) ErrorHandler(h ErrorHandler) {
+	s.errorHandler = h
 }

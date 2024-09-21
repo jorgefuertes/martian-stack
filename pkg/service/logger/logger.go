@@ -3,6 +3,7 @@ package logger
 import (
 	"io"
 	"log/slog"
+	"net/http"
 	"os"
 )
 
@@ -63,4 +64,15 @@ func (s *Service) From(component, action string) *slog.Logger {
 
 func (s *Service) With(args ...any) *slog.Logger {
 	return s.logger().With(args...)
+}
+
+func (s *Service) Request(method, path, ip string, status int, err error) {
+	l := s.From("server", method).With("ip", ip, "path", path, "code", status, "status", http.StatusText(status))
+	if err != nil {
+		l.With("error", err).Error("ERROR")
+
+		return
+	}
+
+	l.Info("OK")
 }

@@ -7,22 +7,40 @@ import (
 	"mime"
 	"net/http"
 	"net/textproto"
+	"strings"
+
+	"git.martianoids.com/martianoids/martian-stack/pkg/service/server/web"
+	uuid "github.com/nu7hatch/gouuid"
 )
 
 type Ctx struct {
-	store    *store
-	req      *http.Request
-	wr       http.ResponseWriter
-	handlers []Handler
-	next     int
+	id         string
+	store      *store
+	req        *http.Request
+	wr         http.ResponseWriter
+	handlers   []Handler
+	next       int
+	statusCode int
 }
 
-func newCtx(wr http.ResponseWriter, req *http.Request, handlers ...Handler) Ctx {
-	return Ctx{wr: wr, req: req, store: newStore(), handlers: handlers}
+func NewCtx(wr http.ResponseWriter, req *http.Request, handlers ...Handler) Ctx {
+	var id string
+	u, err := uuid.NewV4()
+	if err == nil {
+		id = u.String()
+	} else {
+		id = "unknown-uuid"
+	}
+
+	return Ctx{id: id, wr: wr, req: req, store: newStore(), handlers: handlers, statusCode: http.StatusOK}
 }
 
 func (c Ctx) Context() context.Context {
 	return c.req.Context()
+}
+
+func (c Ctx) Store() *store {
+	return c.store
 }
 
 func (c Ctx) Next() error {
@@ -46,16 +64,28 @@ func (c Ctx) Method() string {
 	return c.req.Method
 }
 
+func (c Ctx) Path() string {
+	return c.req.RequestURI
+}
+
+func (c Ctx) UserIP() string {
+	return strings.Split(c.req.RemoteAddr, ":")[0]
+}
+
+func (c Ctx) Status() int {
+	return c.statusCode
+}
+
 func (c Ctx) Accept() string {
-	return c.GetRequestHeader(HeaderAccept)
+	return c.GetRequestHeader(web.HeaderAccept)
 }
 
 func (c Ctx) AcceptsJSON() bool {
-	return c.GetRequestHeader(HeaderAccept) == MIMEApplicationJSON
+	return c.GetRequestHeader(web.HeaderAccept) == web.MIMEApplicationJSON
 }
 
 func (c Ctx) SetContentType(contentType string) {
-	c.SetHeader(HeaderContentType, contentType)
+	c.SetHeader(web.HeaderContentType, contentType)
 }
 
 func (c Ctx) WithHeader(key, value string) Ctx {
@@ -66,6 +96,7 @@ func (c Ctx) WithHeader(key, value string) Ctx {
 
 // explicit status code, set it before any write
 func (c Ctx) WithStatus(code int) Ctx {
+	c.statusCode = code
 	c.wr.WriteHeader(code)
 
 	return c
@@ -74,19 +105,19 @@ func (c Ctx) WithStatus(code int) Ctx {
 // set content-type as text/html and write the html string
 // set status to http.StatusOK if no prior code is set
 func (c Ctx) SendHtml(s string) error {
-	return c.WithHeader(HeaderContentType, MIMETextHTML).Write([]byte(s))
+	return c.WithHeader(web.HeaderContentType, web.MIMETextHTML).Write([]byte(s))
 }
 
 // set content-type as text/plain and write the string
 // set status to http.StatusOK if no prior code is set
 func (c Ctx) SendString(s string) error {
-	return c.WithHeader(HeaderContentType, MIMETextPlain).Write([]byte(s))
+	return c.WithHeader(web.HeaderContentType, web.MIMETextPlain).Write([]byte(s))
 }
 
 // set content-type as application/html and write marshalled object as json string
 // set status to http.StatusOK if no prior code is set
 func (c Ctx) SendJSON(obj any) error {
-	c.SetHeader(HeaderContentType, MIMEApplicationJSON)
+	c.SetHeader(web.HeaderContentType, web.MIMEApplicationJSON)
 	b, err := json.Marshal(obj)
 	if err != nil {
 		return err
@@ -99,8 +130,8 @@ func (c Ctx) SendJSON(obj any) error {
 // Content-Disposition: attachment; filename="logo.png"
 // Status: http.StatusOK if no prior code is set
 func (c Ctx) SendAttachment(filename string, contents *bytes.Buffer) error {
-	c.SetHeader(HeaderContentType, mime.TypeByExtension(filename))
-	c.SetHeader(HeaderContentDisposition, "attachment; filename="+filename)
+	c.SetHeader(web.HeaderContentType, mime.TypeByExtension(filename))
+	c.SetHeader(web.HeaderContentDisposition, "attachment; filename="+filename)
 
 	return c.Write(contents.Bytes())
 }

@@ -20,18 +20,20 @@ func TestStore(t *testing.T) {
 	assert.Equal(t, 2, s.GetInt("test-2"))
 
 	type TestObject struct {
-		One int
+		One   int
 		Hello string
 	}
 
-	s.SetObject("test-4", &TestObject{One: 1, Hello: "Hello, world!"})
+	err := s.SetObject("test-4", &TestObject{One: 1, Hello: "Hello, world!"})
+	require.NoError(t, err)
+
 	dest := new(TestObject)
 	require.NoError(t, s.GetObject("test-4", dest))
 	assert.Equal(t, dest.One, 1)
 	assert.Equal(t, dest.Hello, "Hello, world!")
 
 	bomb := map[string]interface{}{"foo": make(chan int)}
-	err := s.SetObject("test-5", bomb)
+	err = s.SetObject("test-5", bomb)
 	require.Error(t, err)
 
 	assert.Empty(t, s.GetString("nonexistent"))

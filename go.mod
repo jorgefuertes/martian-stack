@@ -1,12 +1,13 @@
 module git.martianoids.com/martianoids/martian-stack
 
-go 1.22.4
+go 1.23.1
 
 require (
 	github.com/creasty/defaults v1.7.0
 	github.com/fatih/structs v1.1.0
 	github.com/go-playground/validator/v10 v10.21.0
 	github.com/gobeam/stringy v0.0.7
+	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
 	github.com/orcaman/concurrent-map/v2 v2.0.1
 	github.com/redis/go-redis/v9 v9.5.2
 	github.com/stretchr/testify v1.9.0

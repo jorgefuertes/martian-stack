@@ -15,3 +15,7 @@ status-dev:
 test: start-dev
 	go test ./...
 	make stop-dev
+
+test-clean:
+	go clean -testcache
+	make test

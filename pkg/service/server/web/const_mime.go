@@ -1,4 +1,4 @@
-package server
+package web
 
 const (
 	MIMETextXML               = "text/xml"

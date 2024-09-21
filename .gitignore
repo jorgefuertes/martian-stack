@@ -2,3 +2,9 @@
 /volumes
 .zed
 .trunk
+.vscode
+
+.zip
+.tar.bz
+.tar.gz
+/work
