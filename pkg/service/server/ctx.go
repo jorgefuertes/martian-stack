@@ -141,3 +141,19 @@ func (c Ctx) Write(b []byte) error {
 
 	return err
 }
+
+// helper to compose and HttpError to be used as error return
+func (c Ctx) Error(code int, message any) HttpError {
+	var msg string
+
+	switch m := message.(type) {
+	case string:
+		msg = m
+	case error:
+		msg = m.Error()
+	default:
+		msg = http.StatusText(code)
+	}
+
+	return HttpError{Code: code, Msg: msg}
+}

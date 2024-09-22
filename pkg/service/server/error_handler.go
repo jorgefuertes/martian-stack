@@ -17,3 +17,14 @@ func defaultErrorHandler(c Ctx, err error) {
 		_ = c.WithStatus(http.StatusInternalServerError).SendString(e.Error())
 	}
 }
+
+// returns a 404 error if the request path is different from "/"
+// it should be used with a "/" route because that route acts as a catch-all,
+// and overwrites the server previous cath-all.
+func notFoundMiddleware(c Ctx) error {
+	if c.Path() != "/" {
+		return ErrNotFound
+	}
+
+	return c.Next()
+}

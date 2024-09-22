@@ -38,3 +38,23 @@ func TestHelperWriter(t *testing.T) {
 	assert.ErrorIs(t, err, io.EOF)
 	assert.Empty(t, line)
 }
+
+func TestReadJSON(t *testing.T) {
+	type User struct {
+		Name string
+		Age  uint8
+		City string
+	}
+
+	user := User{Name: "John", Age: 30, City: "New York"}
+
+	w := helper.NewWriter()
+	n, err := w.WriteJSON(user)
+	require.NoError(t, err)
+	require.NotZero(t, n)
+
+	var u User
+	err = w.ReadJSON(&u)
+	require.NoError(t, err)
+	assert.Equal(t, user, u)
+}
