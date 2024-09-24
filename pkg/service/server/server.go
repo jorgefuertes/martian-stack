@@ -57,6 +57,8 @@ func (s *Server) Use(mw ...Handler) {
 	s.handlers = append(s.handlers, mw...)
 }
 
+// method: web.Method
+// path: path to be handled, params can be defined as :param or {param}
 func (s *Server) Route(method web.Method, path string, h Handler) {
 	if !web.IsValidMethod(method) {
 		method = web.MethodGet
@@ -65,6 +67,9 @@ func (s *Server) Route(method web.Method, path string, h Handler) {
 	if !web.IsMethodAny(method) {
 		path = method.String() + " " + path
 	}
+
+	// replace :param with {param}
+	path = replacePathParams(path)
 
 	s.mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		mw := s.handlers

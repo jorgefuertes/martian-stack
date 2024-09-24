@@ -1,16 +1,13 @@
 package server_test
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
-	"os"
-	"strings"
 	"testing"
 	"time"
 
+	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/server"
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/server/middleware"
@@ -18,51 +15,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-const (
-	host           = "localhost"
-	port           = "8080"
-	timeoutSeconds = 300 // high timeout to allow debugging
-)
-
-func composeURL(path string) string {
-	if !strings.HasPrefix(path, "/") {
-		path = "/" + path
-	}
-
-	return fmt.Sprintf("http://%s:%s%s", host, port, path)
-}
-
-func call(method web.Method, acceptJSON bool, path string, obj any) (*http.Response, error) {
-	var req *http.Request
-	var err error
-	if obj != nil {
-		b, _ := json.Marshal(obj)
-		reqBodyReader := bytes.NewReader(b)
-		req, err = http.NewRequest(method.String(), composeURL(path), reqBodyReader)
-		req.Header.Set(web.HeaderContentType, "application/json")
-	} else {
-		req, err = http.NewRequest(method.String(), composeURL(path), nil)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	if acceptJSON {
-		req.Header.Set(web.HeaderAccept, "application/json")
-	}
-
-	client := &http.Client{Timeout: timeoutSeconds * time.Second}
-	return client.Do(req)
-}
-
-func bodyAsString(t *testing.T, res *http.Response) string {
-	t.Helper()
-
-	b, err := io.ReadAll(res.Body)
-	require.NoError(t, err)
-	return string(b)
-}
 
 func testErrorHandlerfunc(c server.Ctx, err error) {
 	var e server.HttpError
@@ -80,24 +32,15 @@ func testErrorHandlerfunc(c server.Ctx, err error) {
 }
 
 func TestServer(t *testing.T) {
-	l := logger.New(os.Stdout, logger.JsonFormat, logger.LevelInfo)
+	logWriter := helper.NewWriter()
+	l := logger.New(logWriter, logger.JsonFormat, logger.LevelInfo)
 	srv := server.New(host, port, timeoutSeconds)
 	logMw := middleware.NewLogMiddleware(l)
 	srv.Use(middleware.NewCorsHandler(middleware.NewCorsOptions()), logMw)
 	srv.ErrorHandler(testErrorHandlerfunc)
 
-	// define homepage route
-	srv.Route(web.MethodGet, "/", func(c server.Ctx) error {
-		return c.SendString("Welcome to the Home Page")
-	})
-
-	srv.Route(web.MethodGet, "/hello", func(c server.Ctx) error {
-		return c.SendString("Hello, World!")
-	})
-
-	srv.Route(web.MethodGet, "/error/500", func(c server.Ctx) error {
-		return c.Error(http.StatusInternalServerError, nil)
-	})
+	// test routes
+	registerRoutes(srv)
 
 	// background start
 	go func() {
@@ -122,6 +65,7 @@ func TestServer(t *testing.T) {
 			assert.Equal(t, http.StatusOK, res.StatusCode)
 			body := bodyAsString(t, res)
 			assert.Equal(t, "Welcome to the Home Page", body)
+			checkLogHas(t, logWriter, logger.LevelInfo, http.StatusOK, "")
 		})
 
 		t.Run("hello world", func(t *testing.T) {
@@ -130,6 +74,7 @@ func TestServer(t *testing.T) {
 			assert.Equal(t, http.StatusOK, res.StatusCode)
 			body := bodyAsString(t, res)
 			assert.Equal(t, "Hello, World!", body)
+			checkLogHas(t, logWriter, logger.LevelInfo, http.StatusOK, "")
 		})
 	})
 
@@ -139,6 +84,7 @@ func TestServer(t *testing.T) {
 		assert.Equal(t, http.StatusNotFound, res.StatusCode)
 		body := bodyAsString(t, res)
 		assert.Equal(t, "TestErrorHandler: 404 Resource not found", body)
+		checkLogHas(t, logWriter, logger.LevelError, http.StatusNotFound, "Resource not found")
 	})
 
 	t.Run("error 500", func(t *testing.T) {
@@ -159,5 +105,48 @@ func TestServer(t *testing.T) {
 			assert.Equal(t, http.StatusInternalServerError, e.Code)
 			assert.Equal(t, "TestErrorHandler: 500 Internal Server Error", e.Msg)
 		})
+	})
+
+	t.Run("path params", func(t *testing.T) {
+		res, err := call(http.MethodGet, false, "/param-test/John/30", nil)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		body := bodyAsString(t, res)
+		assert.Equal(t, "Hello, John! You are 30 years old.", body)
+	})
+
+	t.Run("path params with url encoded", func(t *testing.T) {
+		res, err := call(http.MethodGet, false, "/param-test/John%20Smith/30", nil)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		body := bodyAsString(t, res)
+		assert.Equal(t, "Hello, John Smith! You are 30 years old.", body)
+	})
+
+	t.Run("query params", func(t *testing.T) {
+		res, err := call(http.MethodGet, false, "/param-query-test?name=John&age=30", nil)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		body := bodyAsString(t, res)
+		assert.Equal(t, "Hello, John! You are 30 years old.", body)
+	})
+
+	t.Run("json post", func(t *testing.T) {
+		u := user{Name: "John", Age: 30}
+
+		res, err := call(http.MethodPost, false, "/post-json-test", u)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		body := bodyAsString(t, res)
+		assert.Equal(t, "Hello, John! You are 30 years old.", body)
+	})
+
+	t.Run("json reply", func(t *testing.T) {
+		res, err := call(http.MethodGet, false, "/json-reply-test", nil)
+		require.NoError(t, err)
+		assert.Equal(t, http.StatusOK, res.StatusCode)
+		assert.Equal(t, web.MIMEApplicationJSON, res.Header.Get(web.HeaderContentType))
+		body := bodyAsString(t, res)
+		assert.Equal(t, `{"name":"John","age":30}`, body)
 	})
 }

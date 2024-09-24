@@ -14,6 +14,10 @@ type (
 
 func (level Level) Level() slog.Level { return slog.Level(level) }
 
+func (level Level) String() string {
+	return level.Level().String()
+}
+
 const (
 	TextFormat Format = 0
 	JsonFormat Format = 1
@@ -69,7 +73,7 @@ func (s *Service) With(args ...any) *slog.Logger {
 func (s *Service) Request(method, path, ip string, status int, err error) {
 	l := s.From("server", method).With("ip", ip, "path", path, "code", status, "status", http.StatusText(status))
 	if err != nil {
-		l.With("error", err).Error("ERROR")
+		l.With("error", err).Error("FAILED")
 
 		return
 	}

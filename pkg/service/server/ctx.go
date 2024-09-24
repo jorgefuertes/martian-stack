@@ -7,6 +7,7 @@ import (
 	"mime"
 	"net/http"
 	"net/textproto"
+	"net/url"
 	"strings"
 
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/server/web"
@@ -156,4 +157,22 @@ func (c Ctx) Error(code int, message any) HttpError {
 	}
 
 	return HttpError{Code: code, Msg: msg}
+}
+
+func (c Ctx) Param(key string) string {
+	value := stringOrString(c.req.PathValue(key), c.req.URL.Query().Get(key))
+	// decode url encoded parameters
+	if strings.Contains(value, "%") {
+		decoded, err := url.QueryUnescape(value)
+		if err == nil {
+			value = decoded
+		}
+	}
+
+	return value
+}
+
+// unmarshal the request body into dest
+func (c Ctx) UnmarshalBody(dest any) error {
+	return json.NewDecoder(c.req.Body).Decode(dest)
 }

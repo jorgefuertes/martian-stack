@@ -1,6 +1,8 @@
 package server
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type ErrorHandler func(c Ctx, err error)
 
