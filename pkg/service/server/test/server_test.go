@@ -93,6 +93,7 @@ func TestServer(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
 		body := bodyAsString(t, res)
 		assert.Equal(t, "TestErrorHandler: 500 Internal Server Error", body)
+		checkLogHas(t, logWriter, logger.LevelError, http.StatusInternalServerError, "Internal Server Error")
 
 		t.Run("json error", func(t *testing.T) {
 			res, err := call(http.MethodGet, true, "/error/500", nil)
@@ -104,6 +105,7 @@ func TestServer(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusInternalServerError, e.Code)
 			assert.Equal(t, "TestErrorHandler: 500 Internal Server Error", e.Msg)
+			checkLogHas(t, logWriter, logger.LevelError, http.StatusInternalServerError, "Internal Server Error")
 		})
 	})
 
@@ -113,6 +115,7 @@ func TestServer(t *testing.T) {
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		body := bodyAsString(t, res)
 		assert.Equal(t, "Hello, John! You are 30 years old.", body)
+		checkLogHas(t, logWriter, logger.LevelInfo, http.StatusOK, "")
 	})
 
 	t.Run("path params with url encoded", func(t *testing.T) {
@@ -121,6 +124,7 @@ func TestServer(t *testing.T) {
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		body := bodyAsString(t, res)
 		assert.Equal(t, "Hello, John Smith! You are 30 years old.", body)
+		checkLogHas(t, logWriter, logger.LevelInfo, http.StatusOK, "")
 	})
 
 	t.Run("query params", func(t *testing.T) {
@@ -129,6 +133,7 @@ func TestServer(t *testing.T) {
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		body := bodyAsString(t, res)
 		assert.Equal(t, "Hello, John! You are 30 years old.", body)
+		checkLogHas(t, logWriter, logger.LevelInfo, http.StatusOK, "")
 	})
 
 	t.Run("json post", func(t *testing.T) {
@@ -139,6 +144,7 @@ func TestServer(t *testing.T) {
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		body := bodyAsString(t, res)
 		assert.Equal(t, "Hello, John! You are 30 years old.", body)
+		checkLogHas(t, logWriter, logger.LevelInfo, http.StatusOK, "")
 	})
 
 	t.Run("json reply", func(t *testing.T) {
@@ -148,5 +154,6 @@ func TestServer(t *testing.T) {
 		assert.Equal(t, web.MIMEApplicationJSON, res.Header.Get(web.HeaderContentType))
 		body := bodyAsString(t, res)
 		assert.Equal(t, `{"name":"John","age":30}`, body)
+		checkLogHas(t, logWriter, logger.LevelInfo, http.StatusOK, "")
 	})
 }
