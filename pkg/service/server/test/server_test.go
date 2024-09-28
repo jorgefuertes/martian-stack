@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
+	"git.martianoids.com/martianoids/martian-stack/pkg/middleware"
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/server"
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/server/middleware"
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/server/web"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
