@@ -70,10 +70,11 @@ func (s *Service) With(args ...any) *slog.Logger {
 	return s.logger().With(args...)
 }
 
-func (s *Service) Request(method, path, ip string, status int, err error) {
-	l := s.From("server", method).With("ip", ip, "path", path, "code", status, "status", http.StatusText(status))
+func (s *Service) Request(id, method, path, ip string, status int, err error) {
+	l := s.From("server", "request").With(
+		"id", id, "method", method, "ip", ip, "path", path, "code", status, "status", http.StatusText(status))
 	if err != nil {
-		l.With("error", err).Error("FAILED")
+		l.Error(err.Error())
 
 		return
 	}

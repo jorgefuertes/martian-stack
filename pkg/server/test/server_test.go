@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
-	"time"
 
 	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
+	"git.martianoids.com/martianoids/martian-stack/pkg/httpconst"
 	"git.martianoids.com/martianoids/martian-stack/pkg/middleware"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server"
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/server"
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/server/web"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -50,7 +49,7 @@ func TestServer(t *testing.T) {
 			t.Logf("Server: %s", err.Error())
 		}
 	}()
-	time.Sleep(1 * time.Second)
+	srv.WaitUntilReady()
 
 	t.Cleanup(func() {
 		// stop gracefully
@@ -60,7 +59,7 @@ func TestServer(t *testing.T) {
 
 	t.Run("request", func(t *testing.T) {
 		t.Run("Home Page", func(t *testing.T) {
-			res, err := call(web.MethodGet, false, "/", nil)
+			res, err := call(httpconst.MethodGet, "", "/", nil)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusOK, res.StatusCode)
 			body := bodyAsString(t, res)
@@ -69,7 +68,7 @@ func TestServer(t *testing.T) {
 		})
 
 		t.Run("hello world", func(t *testing.T) {
-			res, err := call(web.MethodGet, false, "/hello", nil)
+			res, err := call(httpconst.MethodGet, "", "/hello", nil)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusOK, res.StatusCode)
 			body := bodyAsString(t, res)
@@ -79,7 +78,7 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("not found", func(t *testing.T) {
-		res, err := call(http.MethodGet, false, "/not-found", nil)
+		res, err := call(http.MethodGet, "", "/not-found", nil)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusNotFound, res.StatusCode)
 		body := bodyAsString(t, res)
@@ -88,7 +87,7 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("error 500", func(t *testing.T) {
-		res, err := call(http.MethodGet, false, "/error/500", nil)
+		res, err := call(http.MethodGet, "", "/error/500", nil)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
 		body := bodyAsString(t, res)
@@ -96,7 +95,7 @@ func TestServer(t *testing.T) {
 		checkLogHas(t, logWriter, logger.LevelError, http.StatusInternalServerError, "Internal Server Error")
 
 		t.Run("json error", func(t *testing.T) {
-			res, err := call(http.MethodGet, true, "/error/500", nil)
+			res, err := call(http.MethodGet, httpconst.MIMEApplicationJSON, "/error/500", nil)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
 
@@ -110,7 +109,7 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("path params", func(t *testing.T) {
-		res, err := call(http.MethodGet, false, "/param-test/John/30", nil)
+		res, err := call(http.MethodGet, "", "/param-test/John/30", nil)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		body := bodyAsString(t, res)
@@ -119,7 +118,7 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("path params with url encoded", func(t *testing.T) {
-		res, err := call(http.MethodGet, false, "/param-test/John%20Smith/30", nil)
+		res, err := call(http.MethodGet, "", "/param-test/John%20Smith/30", nil)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		body := bodyAsString(t, res)
@@ -128,7 +127,7 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("query params", func(t *testing.T) {
-		res, err := call(http.MethodGet, false, "/param-query-test?name=John&age=30", nil)
+		res, err := call(http.MethodGet, "", "/param-query-test?name=John&age=30", nil)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		body := bodyAsString(t, res)
@@ -139,7 +138,7 @@ func TestServer(t *testing.T) {
 	t.Run("json post", func(t *testing.T) {
 		u := user{Name: "John", Age: 30}
 
-		res, err := call(http.MethodPost, false, "/post-json-test", u)
+		res, err := call(http.MethodPost, "", "/post-json-test", u)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		body := bodyAsString(t, res)
@@ -148,10 +147,10 @@ func TestServer(t *testing.T) {
 	})
 
 	t.Run("json reply", func(t *testing.T) {
-		res, err := call(http.MethodGet, false, "/json-reply-test", nil)
+		res, err := call(http.MethodGet, "", "/json-reply-test", nil)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, res.StatusCode)
-		assert.Equal(t, web.MIMEApplicationJSON, res.Header.Get(web.HeaderContentType))
+		assert.Equal(t, httpconst.MIMEApplicationJSON, res.Header.Get(httpconst.HeaderContentType))
 		body := bodyAsString(t, res)
 		assert.Equal(t, `{"name":"John","age":30}`, body)
 		checkLogHas(t, logWriter, logger.LevelInfo, http.StatusOK, "")

@@ -1,4 +1,4 @@
-package web
+package httpconst
 
 const (
 	MIMETextXML               = "text/xml"

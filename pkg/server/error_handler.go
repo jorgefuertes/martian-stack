@@ -2,6 +2,8 @@ package server
 
 import (
 	"net/http"
+
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/view"
 )
 
 type ErrorHandler func(c Ctx, err error)
@@ -14,9 +16,11 @@ func defaultErrorHandler(c Ctx, err error) {
 	}
 
 	if c.AcceptsJSON() {
-		_ = c.WithStatus(http.StatusInternalServerError).SendJSON(e)
+		_ = c.WithStatus(e.Code).SendJSON(e)
+	} else if c.AcceptsPlainText() {
+		_ = c.WithStatus(e.Code).SendString(e.Error())
 	} else {
-		_ = c.WithStatus(http.StatusInternalServerError).SendString(e.Error())
+		_ = c.WithStatus(e.Code).Render(view.Error(e))
 	}
 }
 

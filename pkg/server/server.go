@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/server/web"
+	"git.martianoids.com/martianoids/martian-stack/pkg/httpconst"
 )
 
 type Server struct {
@@ -36,8 +36,12 @@ func New(host, port string, timeoutSeconds int) *Server {
 		errorHandler: defaultErrorHandler,
 	}
 
-	s.Route(web.MethodAny, "/", func(c Ctx) error {
+	s.Route(httpconst.MethodAny, "/", func(c Ctx) error {
 		return c.Error(http.StatusNotFound, ErrNotFound)
+	})
+
+	s.Route(httpconst.MethodGet, "/server/ready", func(c Ctx) error {
+		return c.SendString("OK")
 	})
 
 	return s
@@ -45,6 +49,30 @@ func New(host, port string, timeoutSeconds int) *Server {
 
 func (s *Server) Start() error {
 	return s.srv.ListenAndServe()
+}
+
+func (s *Server) IsReady() bool {
+	req, err := http.NewRequest("GET", "http://"+s.srv.Addr+"/server/ready", nil)
+	if err != nil {
+		return false
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return false
+	}
+
+	return resp.StatusCode == http.StatusOK
+}
+
+func (s *Server) WaitUntilReady() {
+	t := time.Now()
+	for !s.IsReady() {
+		if time.Since(t) > time.Second*10 {
+			return
+		}
+		time.Sleep(time.Second)
+	}
 }
 
 func (s *Server) Stop() error {
@@ -57,14 +85,14 @@ func (s *Server) Use(mw ...Handler) {
 	s.handlers = append(s.handlers, mw...)
 }
 
-// method: web.Method
+// method: httpconst.Method
 // path: path to be handled, params can be defined as :param or {param}
-func (s *Server) Route(method web.Method, path string, h Handler) {
-	if !web.IsValidMethod(method) {
-		method = web.MethodGet
+func (s *Server) Route(method httpconst.Method, path string, h Handler) {
+	if !httpconst.IsValidMethod(method) {
+		method = httpconst.MethodGet
 	}
 
-	if !web.IsMethodAny(method) {
+	if !httpconst.IsMethodAny(method) {
 		path = method.String() + " " + path
 	}
 

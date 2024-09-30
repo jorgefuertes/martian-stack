@@ -1,0 +1,60 @@
+package view
+
+type httpError interface {
+Status() string
+Error() string
+}
+
+templ Error(err httpError) {
+<!DOCTYPE html>
+<html lang="es">
+
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Error { err.Status() }</title>
+		<style>
+			html,
+			body {
+				height: 100%;
+				margin: 0;
+			}
+
+			.main {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				height: 100vh;
+			}
+
+			.error {
+				padding: 1em;
+				margin: 1em;
+				border-radius: 0.5em;
+			}
+
+			.title {
+				font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+				font-size: 8em;
+				color: rgb(137, 3, 3);
+			}
+
+			.message {
+				font-family: 'Courier New', Courier, monospace;
+				font-size: 1.5em;
+				color: #333;
+			}
+		</style>
+	</head>
+
+	<body>
+		<main class="main">
+			<div class="error">
+				<h1 class="title">Error { err.Status() }</h1>
+				<p class="message">{ err.Error() }</p>
+			</div>
+		</main>
+	</body>
+
+</html>
+}

@@ -1,4 +1,4 @@
-package web
+package httpconst
 
 import "strings"
 

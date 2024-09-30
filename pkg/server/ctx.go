@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"mime"
 	"net/http"
 	"net/textproto"
 	"net/url"
 	"strings"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/server/web"
+	"git.martianoids.com/martianoids/martian-stack/pkg/httpconst"
 	uuid "github.com/nu7hatch/gouuid"
 )
 
@@ -61,6 +62,10 @@ func (c Ctx) GetRequestHeader(key string) string {
 	return c.req.Header.Get(textproto.CanonicalMIMEHeaderKey(key))
 }
 
+func (c Ctx) ID() string {
+	return c.id
+}
+
 func (c Ctx) Method() string {
 	return c.req.Method
 }
@@ -78,15 +83,23 @@ func (c Ctx) Status() int {
 }
 
 func (c Ctx) Accept() string {
-	return c.GetRequestHeader(web.HeaderAccept)
+	return c.GetRequestHeader(httpconst.HeaderAccept)
 }
 
 func (c Ctx) AcceptsJSON() bool {
-	return c.GetRequestHeader(web.HeaderAccept) == web.MIMEApplicationJSON
+	return c.GetRequestHeader(httpconst.HeaderAccept) == httpconst.MIMEApplicationJSON
+}
+
+func (c Ctx) AcceptsHTML() bool {
+	return c.GetRequestHeader(httpconst.HeaderAccept) == httpconst.MIMETextHTML
+}
+
+func (c Ctx) AcceptsPlainText() bool {
+	return c.GetRequestHeader(httpconst.HeaderAccept) == httpconst.MIMETextPlain
 }
 
 func (c Ctx) SetContentType(contentType string) {
-	c.SetHeader(web.HeaderContentType, contentType)
+	c.SetHeader(httpconst.HeaderContentType, contentType)
 }
 
 func (c Ctx) WithHeader(key, value string) Ctx {
@@ -105,20 +118,20 @@ func (c Ctx) WithStatus(code int) Ctx {
 
 // set content-type as text/html and write the html string
 // set status to http.StatusOK if no prior code is set
-func (c Ctx) SendHtml(s string) error {
-	return c.WithHeader(web.HeaderContentType, web.MIMETextHTML).Write([]byte(s))
+func (c Ctx) SendHTML(s string) error {
+	return c.WithHeader(httpconst.HeaderContentType, httpconst.MIMETextHTML).Write([]byte(s))
 }
 
 // set content-type as text/plain and write the string
 // set status to http.StatusOK if no prior code is set
 func (c Ctx) SendString(s string) error {
-	return c.WithHeader(web.HeaderContentType, web.MIMETextPlain).Write([]byte(s))
+	return c.WithHeader(httpconst.HeaderContentType, httpconst.MIMETextPlain).Write([]byte(s))
 }
 
 // set content-type as application/html and write marshalled object as json string
 // set status to http.StatusOK if no prior code is set
 func (c Ctx) SendJSON(obj any) error {
-	c.SetHeader(web.HeaderContentType, web.MIMEApplicationJSON)
+	c.SetHeader(httpconst.HeaderContentType, httpconst.MIMEApplicationJSON)
 	b, err := json.Marshal(obj)
 	if err != nil {
 		return err
@@ -131,8 +144,8 @@ func (c Ctx) SendJSON(obj any) error {
 // Content-Disposition: attachment; filename="logo.png"
 // Status: http.StatusOK if no prior code is set
 func (c Ctx) SendAttachment(filename string, contents *bytes.Buffer) error {
-	c.SetHeader(web.HeaderContentType, mime.TypeByExtension(filename))
-	c.SetHeader(web.HeaderContentDisposition, "attachment; filename="+filename)
+	c.SetHeader(httpconst.HeaderContentType, mime.TypeByExtension(filename))
+	c.SetHeader(httpconst.HeaderContentDisposition, "attachment; filename="+filename)
 
 	return c.Write(contents.Bytes())
 }
@@ -175,4 +188,12 @@ func (c Ctx) Param(key string) string {
 // unmarshal the request body into dest
 func (c Ctx) UnmarshalBody(dest any) error {
 	return json.NewDecoder(c.req.Body).Decode(dest)
+}
+
+type Component interface {
+	Render(ctx context.Context, wr io.Writer) error
+}
+
+func (c Ctx) Render(f Component) error {
+	return f.Render(c.Context(), c.wr)
 }

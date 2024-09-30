@@ -3,11 +3,11 @@ package middleware
 import (
 	"net/http"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/server"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server"
 )
 
 type loggerService interface {
-	Request(method, path, ip string, status int, err error)
+	Request(id, method, path, ip string, status int, err error)
 }
 
 func NewLogMiddleware(l loggerService) server.Handler {
@@ -26,7 +26,7 @@ func NewLogMiddleware(l loggerService) server.Handler {
 			}
 		}
 
-		l.Request(c.Method(), c.Path(), c.UserIP(), code, err)
+		l.Request(c.ID(), c.Method(), c.Path(), c.UserIP(), code, err)
 
 		return err
 	}

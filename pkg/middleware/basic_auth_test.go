@@ -5,9 +5,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"git.martianoids.com/martianoids/martian-stack/pkg/httpconst"
 	"git.martianoids.com/martianoids/martian-stack/pkg/middleware"
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/server"
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/server/web"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -27,7 +27,7 @@ func TestBasicAuthMw(t *testing.T) {
 		assert.ErrorAs(t, err, httpErr)
 		assert.Equal(t, http.StatusUnauthorized, httpErr.Code)
 		assert.Equal(t, http.StatusText(http.StatusUnauthorized), httpErr.Msg)
-		assert.Equal(t, w.Result().Header.Get(web.HeaderWWWAuthenticate), "Basic realm=\"Restricted\"")
+		assert.Equal(t, w.Result().Header.Get(httpconst.HeaderWWWAuthenticate), "Basic realm=\"Restricted\"")
 	})
 
 	t.Run("invalid auth", func(t *testing.T) {
@@ -43,7 +43,7 @@ func TestBasicAuthMw(t *testing.T) {
 		assert.ErrorAs(t, err, httpErr)
 		assert.Equal(t, http.StatusUnauthorized, httpErr.Code)
 		assert.Equal(t, http.StatusText(http.StatusUnauthorized), httpErr.Msg)
-		assert.Equal(t, w.Result().Header.Get(web.HeaderWWWAuthenticate), "Basic realm=\"Restricted\"")
+		assert.Equal(t, w.Result().Header.Get(httpconst.HeaderWWWAuthenticate), "Basic realm=\"Restricted\"")
 	})
 
 	t.Run("valid auth", func(t *testing.T) {
@@ -55,7 +55,7 @@ func TestBasicAuthMw(t *testing.T) {
 
 		err = mw(c)
 		assert.NoError(t, err)
-		assert.Equal(t, w.Result().Header.Get(web.HeaderWWWAuthenticate), "")
+		assert.Equal(t, w.Result().Header.Get(httpconst.HeaderWWWAuthenticate), "")
 	})
 
 	t.Run("bad header", func(t *testing.T) {
@@ -74,7 +74,7 @@ func TestBasicAuthMw(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
-				req.Header.Set(web.HeaderAuthorization, tc.header)
+				req.Header.Set(httpconst.HeaderAuthorization, tc.header)
 
 				c := server.NewCtx(w, req)
 				err = mw(c)

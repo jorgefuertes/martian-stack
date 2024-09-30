@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/server/web"
+	"git.martianoids.com/martianoids/martian-stack/pkg/httpconst"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,14 +22,14 @@ func composeURL(path string) string {
 	return fmt.Sprintf("http://%s:%s%s", host, port, path)
 }
 
-func call(method web.Method, acceptJSON bool, path string, obj any) (*http.Response, error) {
+func call(method httpconst.Method, acceptContetType string, path string, obj any) (*http.Response, error) {
 	var req *http.Request
 	var err error
 	if obj != nil {
 		b, _ := json.Marshal(obj)
 		reqBodyReader := bytes.NewReader(b)
 		req, err = http.NewRequest(method.String(), composeURL(path), reqBodyReader)
-		req.Header.Set(web.HeaderContentType, "application/json")
+		req.Header.Set(httpconst.HeaderContentType, "application/json")
 	} else {
 		req, err = http.NewRequest(method.String(), composeURL(path), nil)
 	}
@@ -37,8 +37,8 @@ func call(method web.Method, acceptJSON bool, path string, obj any) (*http.Respo
 		return nil, err
 	}
 
-	if acceptJSON {
-		req.Header.Set(web.HeaderAccept, "application/json")
+	if acceptContetType != "" {
+		req.Header.Set(httpconst.HeaderAccept, acceptContetType)
 	}
 
 	client := &http.Client{Timeout: timeoutSeconds * time.Second}

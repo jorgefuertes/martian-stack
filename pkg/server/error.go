@@ -1,5 +1,7 @@
 package server
 
+import "strconv"
+
 type HttpError struct {
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`
@@ -13,10 +15,10 @@ func NewHttpError(code int, err error) HttpError {
 	return HttpError{Code: code, Msg: err.Error()}
 }
 
-func (e *HttpError) Status() int {
-	return e.Code
+func (e HttpError) Status() string {
+	return strconv.Itoa(e.Code)
 }
 
-func (e *HttpError) IsError() bool {
+func (e HttpError) IsError() bool {
 	return e.Code >= 400
 }

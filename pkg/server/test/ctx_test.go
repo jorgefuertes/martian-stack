@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/server"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -54,7 +54,7 @@ func TestResponseWriting(t *testing.T) {
 	t.Run("HTML with status 400", func(t *testing.T) {
 		w, _, c := getNewCtx()
 		html := "<p>Hello world</p>"
-		err := c.WithStatus(http.StatusBadRequest).SendHtml(html)
+		err := c.WithStatus(http.StatusBadRequest).SendHTML(html)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 		assert.Equal(t, html, w.Body.String())
