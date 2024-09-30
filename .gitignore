@@ -8,3 +8,5 @@
 .tar.bz
 .tar.gz
 /work
+
+*_templ.go
