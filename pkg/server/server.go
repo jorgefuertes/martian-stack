@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/httpconst"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/httpconst"
 )
 
 type Server struct {
@@ -83,36 +83,6 @@ func (s *Server) Stop() error {
 
 func (s *Server) Use(mw ...Handler) {
 	s.handlers = append(s.handlers, mw...)
-}
-
-// method: httpconst.Method
-// path: path to be handled, params can be defined as :param or {param}
-func (s *Server) Route(method httpconst.Method, path string, h Handler) {
-	if !httpconst.IsValidMethod(method) {
-		method = httpconst.MethodGet
-	}
-
-	if !httpconst.IsMethodAny(method) {
-		path = method.String() + " " + path
-	}
-
-	// replace :param with {param}
-	path = replacePathParams(path)
-
-	s.mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
-		mw := s.handlers
-
-		if isRootPath(path) {
-			mw = append(mw, notFoundMiddleware)
-		}
-
-		c := NewCtx(w, r, append(mw, h)...)
-
-		// execute all the handlers in a "next" chain
-		if err := c.Next(); err != nil {
-			s.errorHandler(c, err)
-		}
-	})
 }
 
 func (s *Server) ErrorHandler(h ErrorHandler) {

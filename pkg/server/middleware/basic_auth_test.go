@@ -5,21 +5,21 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/httpconst"
-	"git.martianoids.com/martianoids/martian-stack/pkg/middleware"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/httpconst"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/middleware"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestBasicAuthMw(t *testing.T) {
-	mw := middleware.NewBasicAuthMw("user", "pass")
+	mw := middleware.NewBasicAuth("user", "pass")
 
 	t.Run("no auth", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		req, err := http.NewRequest(http.MethodGet, "/", nil)
 		require.NoError(t, err)
-		c := server.NewCtx(w, req)
+		c := server.NewCtx(w, req, nil)
 
 		err = mw(c)
 		assert.Error(t, err)
@@ -35,7 +35,7 @@ func TestBasicAuthMw(t *testing.T) {
 		req, err := http.NewRequest(http.MethodGet, "/", nil)
 		require.NoError(t, err)
 		req.SetBasicAuth("user", "pass2")
-		c := server.NewCtx(w, req)
+		c := server.NewCtx(w, req, nil)
 
 		err = mw(c)
 		assert.Error(t, err)
@@ -51,7 +51,7 @@ func TestBasicAuthMw(t *testing.T) {
 		req, err := http.NewRequest(http.MethodGet, "/", nil)
 		require.NoError(t, err)
 		req.SetBasicAuth("user", "pass")
-		c := server.NewCtx(w, req)
+		c := server.NewCtx(w, req, nil)
 
 		err = mw(c)
 		assert.NoError(t, err)
@@ -76,7 +76,7 @@ func TestBasicAuthMw(t *testing.T) {
 			t.Run(tc.name, func(t *testing.T) {
 				req.Header.Set(httpconst.HeaderAuthorization, tc.header)
 
-				c := server.NewCtx(w, req)
+				c := server.NewCtx(w, req, nil)
 				err = mw(c)
 				require.Error(t, err)
 				httpErr := &server.HttpError{}

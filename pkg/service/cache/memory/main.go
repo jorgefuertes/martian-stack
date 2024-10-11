@@ -1,31 +1,34 @@
 package memory
 
 import (
-	"context"
+	"sync"
 	"time"
-
-	cmap "github.com/orcaman/concurrent-map/v2"
 )
 
 type Service struct {
-	store       cmap.ConcurrentMap[string, value]
-	expirations cmap.ConcurrentMap[string, time.Time]
-	ctx         context.Context
-	cancel      context.CancelFunc
+	store       map[string][]byte
+	expirations map[string]time.Time
+	lock        *sync.Mutex
 }
 
-func NewService() *Service {
-	s := &Service{store: cmap.New[value](), expirations: cmap.New[time.Time]()}
-	s.ctx, s.cancel = context.WithCancel(context.Background())
+func New() *Service {
+	s := &Service{
+		store:       make(map[string][]byte),
+		expirations: make(map[string]time.Time),
+		lock:        &sync.Mutex{},
+	}
+
 	s.StartExpirationController()
 
 	return s
 }
 
 func (s *Service) Close() error {
-	s.store.Clear()
-	s.expirations.Clear()
-	s.cancel()
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	s.store = nil
+	s.expirations = nil
 
 	return nil
 }

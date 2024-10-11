@@ -7,11 +7,11 @@ import (
 	"regexp"
 	"strings"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/httpconst"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/httpconst"
 )
 
-func NewBasicAuthMw(username, password string) server.Handler {
+func NewBasicAuth(username, password string) server.Handler {
 	return func(c server.Ctx) error {
 		auth := c.GetRequestHeader(httpconst.HeaderAuthorization)
 

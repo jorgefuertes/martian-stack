@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/httpconst"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/httpconst"
 )
 
 func registerRoutes(srv *server.Server) {

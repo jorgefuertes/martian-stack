@@ -20,6 +20,7 @@ func TestCtxMiddleware(t *testing.T) {
 			err := c.Next()
 			msg = fmt.Sprintf("mw %d out\n", order)
 			require.NoError(t, c.SendString(msg))
+
 			return err
 		}
 	}
@@ -46,7 +47,7 @@ func TestResponseWriting(t *testing.T) {
 	getNewCtx := func() (*httptest.ResponseRecorder, *http.Request, server.Ctx) {
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		c := server.NewCtx(w, req)
+		c := server.NewCtx(w, req, nil)
 
 		return w, req, c
 	}

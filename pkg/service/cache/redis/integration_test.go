@@ -34,7 +34,7 @@ type counter struct {
 func TestCache(t *testing.T) {
 	t.Logf("Redis conf: %s:%d@%s:%s/%d", host, port, "", "", db)
 	log := logger.New(os.Stderr, logger.TextFormat, logger.LevelDebug)
-	c := redis.NewService(log, host, port, "", "", db)
+	c := redis.New(log, host, port, "", "", db)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 
 	t.Cleanup(func() {

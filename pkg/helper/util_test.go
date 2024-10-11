@@ -1,6 +1,10 @@
-package server
+package helper_test
 
-import "testing"
+import (
+	"testing"
+
+	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
+)
 
 func TestReplacePathParams(t *testing.T) {
 	testCases := []struct {
@@ -19,7 +23,7 @@ func TestReplacePathParams(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.path, func(t *testing.T) {
-			got := replacePathParams(tc.path)
+			got := helper.ReplacePathParams(tc.path)
 			if got != tc.want {
 				t.Errorf("replacePathParams(%q) = %q, want %q", tc.path, got, tc.want)
 			}

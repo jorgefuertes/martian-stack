@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/httpconst"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/httpconst"
 )
 
 type CorsOptions struct {
@@ -41,7 +41,7 @@ func DefaultAllowedHeaders() []string {
 	}
 }
 
-func NewCorsHandler(options CorsOptions) server.Handler {
+func NewCors(options CorsOptions) server.Handler {
 	return func(c server.Ctx) error {
 		if c.Method() == http.MethodOptions {
 			c.WithHeader(httpconst.HeaderAccessControlAllowOrigin, options.Origin).

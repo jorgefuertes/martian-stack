@@ -50,6 +50,10 @@ func NewWithDebugToStdout() *Service {
 	return &Service{handler: newHandlerFor(os.Stdout, TextFormat, LevelDebug)}
 }
 
+func NewNull() *Service {
+	return &Service{handler: newHandlerFor(io.Discard, TextFormat, LevelError)}
+}
+
 func newHandlerFor(wr io.Writer, format Format, level Level) slog.Handler {
 	if format == JsonFormat {
 		return slog.NewJSONHandler(wr, &slog.HandlerOptions{AddSource: false, Level: level})
@@ -70,14 +74,14 @@ func (s *Service) With(args ...any) *slog.Logger {
 	return s.logger().With(args...)
 }
 
-func (s *Service) Request(id, method, path, ip string, status int, err error) {
+func (s *Service) Request(id, method, path, ip, sessID string, status int, err error) {
 	l := s.From("server", "request").With(
-		"id", id, "method", method, "ip", ip, "path", path, "code", status, "status", http.StatusText(status))
+		"id", id, "method", method, "ip", ip, "session_id", sessID, "path", path, "code", status, "status", http.StatusText(status))
 	if err != nil {
 		l.Error(err.Error())
 
 		return
 	}
 
-	l.Info("OK")
+	l.Info("Success")
 }

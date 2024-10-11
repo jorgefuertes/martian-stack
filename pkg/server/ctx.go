@@ -4,20 +4,27 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime"
 	"net/http"
 	"net/textproto"
 	"net/url"
+	"slices"
 	"strings"
+	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/httpconst"
+	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/httpconst"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/session"
+	"git.martianoids.com/martianoids/martian-stack/pkg/store"
 	uuid "github.com/nu7hatch/gouuid"
 )
 
 type Ctx struct {
 	id         string
-	store      *store
+	store      *store.Service
+	session    *session.Session
 	req        *http.Request
 	wr         http.ResponseWriter
 	handlers   []Handler
@@ -26,6 +33,13 @@ type Ctx struct {
 }
 
 func NewCtx(wr http.ResponseWriter, req *http.Request, handlers ...Handler) Ctx {
+	// not allowing nil
+	for i, h := range handlers {
+		if h == nil {
+			handlers = slices.Delete(handlers, i, 1)
+		}
+	}
+
 	var id string
 	u, err := uuid.NewV4()
 	if err == nil {
@@ -34,14 +48,15 @@ func NewCtx(wr http.ResponseWriter, req *http.Request, handlers ...Handler) Ctx 
 		id = "unknown-uuid"
 	}
 
-	return Ctx{id: id, wr: wr, req: req, store: newStore(), handlers: handlers, statusCode: http.StatusOK}
+	return Ctx{id: id, wr: wr, req: req, store: store.New(), handlers: handlers, statusCode: http.StatusOK}
 }
 
+// current request context
 func (c Ctx) Context() context.Context {
 	return c.req.Context()
 }
 
-func (c Ctx) Store() *store {
+func (c Ctx) Store() *store.Service {
 	return c.store
 }
 
@@ -156,7 +171,7 @@ func (c Ctx) Write(b []byte) error {
 	return err
 }
 
-// helper to compose and HttpError to be used as error return
+// helper to compose an HttpError to be used as error return
 func (c Ctx) Error(code int, message any) HttpError {
 	var msg string
 
@@ -173,7 +188,7 @@ func (c Ctx) Error(code int, message any) HttpError {
 }
 
 func (c Ctx) Param(key string) string {
-	value := stringOrString(c.req.PathValue(key), c.req.URL.Query().Get(key))
+	value := helper.StringOrString(c.req.PathValue(key), c.req.URL.Query().Get(key))
 	// decode url encoded parameters
 	if strings.Contains(value, "%") {
 		decoded, err := url.QueryUnescape(value)
@@ -196,4 +211,18 @@ type Component interface {
 
 func (c Ctx) Render(f Component) error {
 	return f.Render(c.Context(), c.wr)
+}
+
+func (c Ctx) SetCookie(name, value string, expire time.Duration) {
+	c.SetHeader(httpconst.HeaderSetCookie, fmt.Sprintf("%s=%s; Max-Age=%0f; Path=/; Domain=%s;",
+		name, value, expire.Seconds(), c.req.Host))
+}
+
+func (c Ctx) GetCookie(name string) string {
+	cookie, err := c.req.Cookie(name)
+	if err != nil {
+		return ""
+	}
+
+	return cookie.Value
 }

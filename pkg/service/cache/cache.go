@@ -14,6 +14,7 @@ import (
 type Service interface {
 	Close() error
 	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error
+	Get(ctx context.Context, key string, dest any) error
 	GetString(ctx context.Context, key string) (string, error)
 	GetInt(ctx context.Context, key string) (int, error)
 	GetFloat(ctx context.Context, key string) (float64, error)

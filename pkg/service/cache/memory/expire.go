@@ -4,27 +4,27 @@ import "time"
 
 func (s *Service) StartExpirationController() {
 	go func() {
-		for s.ctx.Err() == nil {
+		for {
 			time.Sleep(200 * time.Millisecond)
 
-			if s.expirations.IsEmpty() {
+			if s.expirations == nil {
+				return
+			}
+
+			if len(s.expirations) == 0 {
 				continue
 			}
 
-			for _, k := range s.expirations.Keys() {
-				expirationAt, ok := s.expirations.Get(k)
-				if !ok {
-					continue
+			if s.lock.TryLock() {
+				for key, exp := range s.expirations {
+					if exp.IsZero() {
+						delete(s.expirations, key)
+					} else if exp.Before(time.Now()) {
+						delete(s.expirations, key)
+						delete(s.store, key)
+					}
 				}
-
-				if expirationAt.IsZero() {
-					s.expirations.Remove(k)
-				}
-
-				if expirationAt.Before(time.Now()) {
-					s.store.Remove(k)
-					s.expirations.Remove(k)
-				}
+				s.lock.Unlock()
 			}
 		}
 	}()

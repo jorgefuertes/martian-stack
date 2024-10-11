@@ -25,8 +25,14 @@ type counter struct {
 	mux *sync.Mutex
 }
 
+type testObject struct {
+	Name  string  `json:"name"`
+	Age   int     `json:"age"`
+	Money float64 `json:"money"`
+}
+
 func TestCache(t *testing.T) {
-	c := memory.NewService()
+	c := memory.New()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 
 	t.Cleanup(func() {
@@ -34,42 +40,57 @@ func TestCache(t *testing.T) {
 		c.Close()
 	})
 
-	// set/recover string
-	testStr := "This is just a testing str"
-	key := "test-str"
-	require.NoError(t, c.Set(ctx, key, testStr, 5*time.Second))
-	s, err := c.GetString(ctx, key)
-	require.NoError(t, err)
-	assert.Equal(t, testStr, s)
+	t.Run("string", func(t *testing.T) {
+		testStr := "This is just a testing str"
+		key := "test-str"
+		require.NoError(t, c.Set(ctx, key, testStr, 5*time.Second))
+		s, err := c.GetString(ctx, key)
+		require.NoError(t, err)
+		assert.Equal(t, testStr, s)
+	})
 
-	rnd := rand.New(rand.NewSource(time.Now().UnixMilli()))
+	t.Run("int", func(t *testing.T) {
+		rnd := rand.New(rand.NewSource(time.Now().UnixMilli()))
+		testInt := rnd.Int()
+		key := "test-int"
+		require.NoError(t, c.Set(ctx, key, testInt, 5*time.Second))
+		n, err := c.GetInt(ctx, key)
+		require.NoError(t, err)
+		assert.Equal(t, testInt, n)
+	})
 
-	// set/recover int
-	testInt := rnd.Int()
-	key = "test-int"
-	require.NoError(t, c.Set(ctx, key, testInt, 5*time.Second))
-	n, err := c.GetInt(ctx, key)
-	require.NoError(t, err)
-	assert.Equal(t, testInt, n)
+	t.Run("float", func(t *testing.T) {
+		rnd := rand.New(rand.NewSource(time.Now().UnixMilli()))
+		testFloat := rnd.Float64()
+		key := "test-float"
+		require.NoError(t, c.Set(ctx, key, testFloat, 5*time.Second))
+		// check existence
+		require.True(t, c.Exists(ctx, key))
+		// recover
+		f, err := c.GetFloat(ctx, key)
+		require.NoError(t, err)
+		assert.Equal(t, testFloat, f)
+		// delete
+		require.NoError(t, c.Delete(ctx, key))
+		require.False(t, c.Exists(ctx, key))
+		// set and check expiration
+		key += "_2"
+		require.NoError(t, c.Set(ctx, key, testFloat, 250*time.Millisecond))
+		require.True(t, shouldExpire(ctx, c, key, 10*time.Second), "Not expired: %s", key)
+	})
 
-	// set/recover float
-	testFloat := rnd.Float64()
-	key = "test-float"
-	require.NoError(t, c.Set(ctx, key, testFloat, 5*time.Second))
-	// check existence
-	require.True(t, c.Exists(ctx, key))
-	// recover
-	f, err := c.GetFloat(ctx, key)
-	require.NoError(t, err)
-	assert.Equal(t, testFloat, f)
-	// delete
-	require.NoError(t, c.Delete(ctx, key))
-	require.False(t, c.Exists(ctx, key))
-
-	// set and check expiration
-	key += "_2"
-	require.NoError(t, c.Set(ctx, key, testFloat, 250*time.Millisecond))
-	require.True(t, shouldExpire(ctx, c, key, 10*time.Second), "Not expired: %s", key)
+	t.Run("object", func(t *testing.T) {
+		// set/recover object
+		testObj := &testObject{Name: "John", Age: 30, Money: 123.4}
+		key := "test-obj"
+		require.NoError(t, c.Set(ctx, key, testObj, 5*time.Second))
+		require.True(t, c.Exists(ctx, key))
+		obj := new(testObject)
+		require.NoError(t, c.Get(ctx, key, obj))
+		require.Equal(t, testObj, obj)
+		require.NoError(t, c.Delete(ctx, key))
+		require.False(t, c.Exists(ctx, key))
+	})
 
 	ct := new(counter)
 	ct.mux = new(sync.Mutex)

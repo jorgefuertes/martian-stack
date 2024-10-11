@@ -2,6 +2,7 @@ package helper
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"slices"
 )
@@ -52,7 +53,15 @@ func (w *Writer) ReadJSON(dest any) error {
 		return err
 	}
 
-	return json.Unmarshal(b, dest)
+	if len(b) == 0 {
+		return nil
+	}
+
+	if err := json.Unmarshal(b, dest); err != nil {
+		return errors.Join(err, errors.New(string(b)))
+	}
+
+	return nil
 }
 
 func (w *Writer) Reset() {

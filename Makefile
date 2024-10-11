@@ -23,6 +23,10 @@ test-clean:
 	go clean -testcache
 	make test
 
+lint:
+	staticcheck ./...
+	GOGC=80 /Users/queru/Desarrollo/gocode/bin/golangci-lint run --fast --concurrency 16
+
 run: start-dev gen
 	go run cmd/testserver/main.go
 	make stop-dev

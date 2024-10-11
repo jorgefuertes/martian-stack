@@ -2,75 +2,60 @@ package memory
 
 import (
 	"context"
+	"encoding/json"
 	"regexp"
 	"strings"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func (s *Service) GetString(ctx context.Context, key string) (string, error) {
+func (s *Service) Get(ctx context.Context, key string, dest any) error {
 	if err := ctx.Err(); err != nil {
-		return "", err
+		return err
 	}
 
-	v, ok := s.store.Get(key)
-	if ok {
-		return v.String(), nil
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	v, ok := s.store[key]
+	if !ok {
+		return ErrKeyNotFound
 	}
 
-	return "", ErrKeyNotFound
+	return json.Unmarshal(v, dest)
+}
+
+func (s *Service) GetString(ctx context.Context, key string) (string, error) {
+	var v string
+	err := s.Get(ctx, key, &v)
+	return v, err
 }
 
 func (s *Service) GetInt(ctx context.Context, key string) (int, error) {
-	if err := ctx.Err(); err != nil {
-		return 0, err
-	}
-
-	v, ok := s.store.Get(key)
-	if ok {
-		return v.int()
-	}
-
-	return 0, ErrKeyNotFound
+	var v int
+	err := s.Get(ctx, key, &v)
+	return v, err
 }
 
 func (s *Service) GetFloat(ctx context.Context, key string) (float64, error) {
-	if err := ctx.Err(); err != nil {
-		return 0, err
-	}
-
-	v, ok := s.store.Get(key)
-	if ok {
-		return v.float64()
-	}
-
-	return 0, ErrKeyNotFound
+	var v float64
+	err := s.Get(ctx, key, &v)
+	return v, err
 }
 
 func (s *Service) GetBytes(ctx context.Context, key string) ([]byte, error) {
-	if err := ctx.Err(); err != nil {
-		return []byte{}, err
+	v, ok := s.store[key]
+	if !ok {
+		return nil, ErrKeyNotFound
 	}
 
-	v, ok := s.store.Get(key)
-	if ok {
-		return v.bytes(), nil
-	}
-
-	return []byte{}, ErrKeyNotFound
+	return v, nil
 }
 
 func (s *Service) GetObjectID(ctx context.Context, key string) (primitive.ObjectID, error) {
-	if err := ctx.Err(); err != nil {
-		return primitive.NilObjectID, err
-	}
-
-	v, ok := s.store.Get(key)
-	if ok {
-		return primitive.ObjectIDFromHex(v.String())
-	}
-
-	return primitive.NilObjectID, ErrKeyNotFound
+	var v primitive.ObjectID
+	err := s.Get(ctx, key, &v)
+	return v, err
 }
 
 func (s *Service) Exists(ctx context.Context, key string) bool {
@@ -78,7 +63,16 @@ func (s *Service) Exists(ctx context.Context, key string) bool {
 		return false
 	}
 
-	return s.store.Has(key)
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	for k := range s.store {
+		if k == key {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (s *Service) Keys(ctx context.Context, pattern string) ([]string, error) {
@@ -89,12 +83,15 @@ func (s *Service) Keys(ctx context.Context, pattern string) ([]string, error) {
 		return keys, err
 	}
 
-	for _, key := range s.store.Keys() {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	for k := range s.store {
 		if err := ctx.Err(); err != nil {
 			return keys, err
 		}
-		if r.MatchString(key) {
-			keys = append(keys, key)
+		if r.MatchString(k) {
+			keys = append(keys, k)
 		}
 	}
 

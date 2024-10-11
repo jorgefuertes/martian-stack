@@ -8,14 +8,16 @@ import (
 	driver "github.com/redis/go-redis/v9"
 )
 
+const DefaultHost = "localhost"
+const DefaultPort = 6379
+const DefaultDB = 0
+
 type Service struct {
 	driver *driver.Client
-	log    *logger.Service
 }
 
-func NewService(log *logger.Service, host string, port int, user, pass string, db int) *Service {
+func New(log *logger.Service, host string, port int, user, pass string, db int) *Service {
 	return &Service{
-		log: log,
 		driver: driver.NewClient(&driver.Options{
 			Addr:                  fmt.Sprintf("%s:%d", host, port),
 			DB:                    db,

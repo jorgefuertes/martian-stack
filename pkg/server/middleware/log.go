@@ -7,10 +7,10 @@ import (
 )
 
 type loggerService interface {
-	Request(id, method, path, ip string, status int, err error)
+	Request(id, method, path, ip, sessID string, status int, err error)
 }
 
-func NewLogMiddleware(l loggerService) server.Handler {
+func NewLog(l loggerService) server.Handler {
 	return func(c server.Ctx) error {
 		err := c.Next()
 		code := c.Status()
@@ -26,7 +26,11 @@ func NewLogMiddleware(l loggerService) server.Handler {
 			}
 		}
 
-		l.Request(c.ID(), c.Method(), c.Path(), c.UserIP(), code, err)
+		var sessID string
+		if c.Session() != nil {
+			sessID = c.Session().ID
+		}
+		l.Request(c.ID(), c.Method(), c.Path(), c.UserIP(), sessID, code, err)
 
 		return err
 	}

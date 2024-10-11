@@ -3,8 +3,9 @@ package main
 import (
 	"os"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/middleware"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/httpconst"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/middleware"
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
 )
 
@@ -17,8 +18,8 @@ const (
 func main() {
 	l := logger.New(os.Stdout, logger.TextFormat, logger.LevelDebug)
 	srv := server.New(host, port, timeoutSeconds)
-	logMw := middleware.NewLogMiddleware(l)
-	srv.Use(middleware.NewCorsHandler(middleware.NewCorsOptions()), logMw)
+	logMw := middleware.NewLog(l)
+	srv.Use(middleware.NewCors(middleware.NewCorsOptions()), logMw)
 
 	// test routes
 	registerRoutes(srv)
@@ -32,5 +33,7 @@ func main() {
 }
 
 func registerRoutes(srv *server.Server) {
-
+	srv.Route(httpconst.MethodGet, "/", func(c server.Ctx) error {
+		return c.SendString("Welcome to the Home Page")
+	})
 }

@@ -47,7 +47,7 @@ func (t *TestAccount) Indexes() []mongo.IndexModel {
 func TestMongoDB(t *testing.T) {
 	wr := helper.NewWriter()
 	logSvc := logger.New(wr, logger.JsonFormat, logger.LevelDebug)
-	cacheSvc := redis.NewService(logSvc, "localhost", 6379, "", "", 0)
+	cacheSvc := redis.New(logSvc, "localhost", 6379, "", "", 0)
 	dbSvc, err := mongodb.NewService(cacheSvc, logSvc, "martian-data-test", "localhost", 27017, 8, 16, "", "")
 	require.NoError(t, err)
 

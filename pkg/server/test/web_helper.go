@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/httpconst"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/httpconst"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,7 +22,7 @@ func composeURL(path string) string {
 	return fmt.Sprintf("http://%s:%s%s", host, port, path)
 }
 
-func call(method httpconst.Method, acceptContetType string, path string, obj any) (*http.Response, error) {
+func call(method httpconst.Method, acceptContetType string, cookies []*http.Cookie, path string, obj any) (*http.Response, error) {
 	var req *http.Request
 	var err error
 	if obj != nil {
@@ -41,6 +41,10 @@ func call(method httpconst.Method, acceptContetType string, path string, obj any
 		req.Header.Set(httpconst.HeaderAccept, acceptContetType)
 	}
 
+	for _, c := range cookies {
+		req.AddCookie(c)
+	}
+
 	client := &http.Client{Timeout: timeoutSeconds * time.Second}
 	return client.Do(req)
 }
@@ -51,4 +55,14 @@ func bodyAsString(t *testing.T, res *http.Response) string {
 	b, err := io.ReadAll(res.Body)
 	require.NoError(t, err)
 	return string(b)
+}
+
+func bodyAsJSON(t *testing.T, res *http.Response, dest any) {
+	t.Helper()
+
+	b, err := io.ReadAll(res.Body)
+	require.NoError(t, err, "Body: %s", string(b))
+
+	err = json.Unmarshal(b, dest)
+	require.NoError(t, err)
 }
