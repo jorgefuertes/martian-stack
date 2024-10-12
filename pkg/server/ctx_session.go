@@ -2,11 +2,10 @@ package server
 
 import "git.martianoids.com/martianoids/martian-stack/pkg/server/session"
 
-
 func (c Ctx) Session() *session.Session {
-	return c.session
-}
+	if c.session == nil {
+		panic(ErrSessionNotStarted)
+	}
 
-func (c *Ctx) SetSession(s *session.Session) {
-	c.session = s
+	return c.session
 }

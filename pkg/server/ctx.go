@@ -48,7 +48,15 @@ func NewCtx(wr http.ResponseWriter, req *http.Request, handlers ...Handler) Ctx 
 		id = "unknown-uuid"
 	}
 
-	return Ctx{id: id, wr: wr, req: req, store: store.New(), handlers: handlers, statusCode: http.StatusOK}
+	return Ctx{
+		id:         id,
+		wr:         wr,
+		req:        req,
+		store:      store.New(),
+		session:    session.New(),
+		handlers:   handlers,
+		statusCode: http.StatusOK,
+	}
 }
 
 // current request context

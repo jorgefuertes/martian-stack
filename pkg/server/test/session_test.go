@@ -20,7 +20,7 @@ func TestServerSession(t *testing.T) {
 	logWriter := helper.NewWriter()
 	l := logger.New(logWriter, logger.JsonFormat, logger.LevelInfo)
 	srv := server.New(host, port, timeoutSeconds)
-	sessMw := middleware.NewSession(cacheSvc)
+	sessMw := middleware.NewSession(cacheSvc, middleware.SessionAutoStart)
 	logMw := middleware.NewLog(l)
 	srv.Use(logMw, middleware.NewCors(middleware.NewCorsOptions()), sessMw)
 	srv.ErrorHandler(testErrorHandlerfunc)

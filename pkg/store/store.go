@@ -30,11 +30,6 @@ func (s *Service) Flush() {
 	s.dirty = true
 }
 
-// true if the data has been modified
-func (s *Service) IsDirty() bool {
-	return s.dirty
-}
-
 // set any value
 func (s *Service) Set(key string, v any) error {
 	b, err := json.Marshal(v)
