@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/httpconst"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
 )
 
 type CorsOptions struct {
@@ -34,19 +34,19 @@ func DefaultAllowedMethods() []string {
 
 func DefaultAllowedHeaders() []string {
 	return []string{
-		httpconst.HeaderContentType,
-		httpconst.HeaderAccept,
-		httpconst.HeaderAcceptLanguage,
-		httpconst.HeaderAcceptEncoding,
+		web.HeaderContentType,
+		web.HeaderAccept,
+		web.HeaderAcceptLanguage,
+		web.HeaderAcceptEncoding,
 	}
 }
 
-func NewCors(options CorsOptions) server.Handler {
-	return func(c server.Ctx) error {
+func NewCors(options CorsOptions) ctx.Handler {
+	return func(c ctx.Ctx) error {
 		if c.Method() == http.MethodOptions {
-			c.WithHeader(httpconst.HeaderAccessControlAllowOrigin, options.Origin).
-				WithHeader(httpconst.HeaderAccessControlAllowMethods, strings.Join(options.AllowedMethods, ",")).
-				WithHeader(httpconst.HeaderAccessControlAllowHeaders, strings.Join(options.AllowedMethods, ", ")).
+			c.WithHeader(web.HeaderAccessControlAllowOrigin, options.Origin).
+				WithHeader(web.HeaderAccessControlAllowMethods, strings.Join(options.AllowedMethods, ",")).
+				WithHeader(web.HeaderAccessControlAllowHeaders, strings.Join(options.AllowedMethods, ", ")).
 				WithStatus(http.StatusNoContent)
 
 			return nil

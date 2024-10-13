@@ -5,17 +5,22 @@ import (
 	"errors"
 	"io"
 	"slices"
+	"sync"
 )
 
 type Writer struct {
 	lines [][]byte
+	lock  *sync.Mutex
 }
 
 func NewWriter() *Writer {
-	return &Writer{lines: make([][]byte, 0)}
+	return &Writer{lines: make([][]byte, 0), lock: &sync.Mutex{}}
 }
 
 func (w *Writer) Write(data []byte) (n int, err error) {
+	w.lock.Lock()
+	defer w.lock.Unlock()
+
 	if data[len(data)-1] == '\n' {
 		data = slices.Delete(data, len(data)-1, len(data))
 	}
@@ -34,6 +39,9 @@ func (w *Writer) WriteJSON(obj any) (n int, err error) {
 
 // read lines one by one, deleting them
 func (w *Writer) Read() ([]byte, error) {
+	w.lock.Lock()
+	defer w.lock.Unlock()
+
 	if len(w.lines) == 0 {
 		return []byte{}, io.EOF
 	}
@@ -65,7 +73,15 @@ func (w *Writer) ReadJSON(dest any) error {
 }
 
 func (w *Writer) Reset() {
+	w.lock.Lock()
+	defer w.lock.Unlock()
+
 	w.lines = make([][]byte, 0)
 }
 
-func (w *Writer) Len() int { return len(w.lines) }
+func (w *Writer) Len() int {
+	w.lock.Lock()
+	defer w.lock.Unlock()
+
+	return len(w.lines)
+}

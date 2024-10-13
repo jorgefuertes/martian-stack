@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/httpconst"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,14 +22,20 @@ func composeURL(path string) string {
 	return fmt.Sprintf("http://%s:%s%s", host, port, path)
 }
 
-func call(method httpconst.Method, acceptContetType string, cookies []*http.Cookie, path string, obj any) (*http.Response, error) {
+func call(
+	method web.Method,
+	acceptContetType string,
+	cookies []*http.Cookie,
+	path string,
+	obj any,
+) (*http.Response, error) {
 	var req *http.Request
 	var err error
 	if obj != nil {
 		b, _ := json.Marshal(obj)
 		reqBodyReader := bytes.NewReader(b)
 		req, err = http.NewRequest(method.String(), composeURL(path), reqBodyReader)
-		req.Header.Set(httpconst.HeaderContentType, "application/json")
+		req.Header.Set(web.HeaderContentType, "application/json")
 	} else {
 		req, err = http.NewRequest(method.String(), composeURL(path), nil)
 	}
@@ -38,7 +44,7 @@ func call(method httpconst.Method, acceptContetType string, cookies []*http.Cook
 	}
 
 	if acceptContetType != "" {
-		req.Header.Set(httpconst.HeaderAccept, acceptContetType)
+		req.Header.Set(web.HeaderAccept, acceptContetType)
 	}
 
 	for _, c := range cookies {

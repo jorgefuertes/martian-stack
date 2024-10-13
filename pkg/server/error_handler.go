@@ -1,18 +1,18 @@
 package server
 
 import (
-	"net/http"
-
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/server_error"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/view"
 )
 
-type ErrorHandler func(c Ctx, err error)
+type ErrorHandler func(c ctx.Ctx, err error)
 
-func defaultErrorHandler(c Ctx, err error) {
-	var e HttpError
-	e, ok := err.(HttpError)
+func defaultErrorHandler(c ctx.Ctx, err error) {
+	e := server_error.New()
+	e, ok := err.(server_error.Error)
 	if !ok {
-		e = HttpError{Code: http.StatusInternalServerError, Msg: err.Error()}
+		e = server_error.New().WithMsg(err.Error())
 	}
 
 	if c.AcceptsJSON() {
@@ -27,9 +27,9 @@ func defaultErrorHandler(c Ctx, err error) {
 // returns a 404 error if the request path is different from "/"
 // it should be used with a "/" route because that route acts as a catch-all,
 // and overwrites the server previous cath-all.
-func notFoundMiddleware(c Ctx) error {
+func notFoundMiddleware(c ctx.Ctx) error {
 	if c.Path() != "/" {
-		return ErrNotFound
+		return server_error.ErrNotFound
 	}
 
 	return c.Next()

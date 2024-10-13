@@ -7,8 +7,9 @@ import (
 
 	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/httpconst"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/middleware"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/cache/memory"
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
 	"github.com/stretchr/testify/assert"
@@ -32,7 +33,7 @@ func TestServerSession(t *testing.T) {
 	}
 
 	// routes
-	srv.Route(httpconst.MethodGet, "/session/:name", func(c server.Ctx) error {
+	srv.Route(web.MethodGet, "/session/:name", func(c ctx.Ctx) error {
 		name := c.Param("name")
 		sess := c.Session()
 
@@ -66,7 +67,7 @@ func TestServerSession(t *testing.T) {
 	for i := range 10 {
 		t.Run(fmt.Sprintf("session %d", i), func(t *testing.T) {
 			name := fmt.Sprintf("test_%d", i)
-			res, err := call(httpconst.MethodGet, httpconst.MIMEApplicationJSON, cookies, "/session/"+name, nil)
+			res, err := call(web.MethodGet, web.MIMEApplicationJSON, cookies, "/session/"+name, nil)
 			require.NoError(t, err)
 			if res.StatusCode != http.StatusOK {
 				t.Logf("RESPONSE: %s", bodyAsString(t, res))

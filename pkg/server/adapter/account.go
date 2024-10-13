@@ -20,12 +20,12 @@ type Account interface {
 
 type MinAccount struct {
 	ID       primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	Username string             `json:"username"     bson:"username"         validate:"required,min=3,max=50"`
-	Name     string             `json:"name"         bson:"name"             validate:"required,min=3,max=50"`
-	Surname  string             `json:"surname"      bson:"surname"          validate:"required,min=3,max=50"`
-	Email    string             `json:"email"        bson:"email"            validate:"required,email"`
-	Role     string             `json:"role"         bson:"role"             validate:"required,oneof=superadmin admin user" default:"user"`
-	Enabled  bool               `json:"enabled"      bson:"enabled"          default:"true"`
+	Username string             `json:"username"     bson:"username"      validate:"required,min=3,max=50"`
+	Name     string             `json:"name"         bson:"name"          validate:"required,min=3,max=50"`
+	Surname  string             `json:"surname"      bson:"surname"       validate:"required,min=3,max=50"`
+	Email    string             `json:"email"        bson:"email"         validate:"required,email"`
+	Role     string             `json:"role"         bson:"role"          validate:"required,oneof=superadmin admin user" default:"user"`
+	Enabled  bool               `json:"enabled"      bson:"enabled"                                                       default:"true"`
 }
 
 type Alias MinAccount
@@ -37,9 +37,11 @@ func (a MinAccount) GetUsername() string {
 func (a MinAccount) GetName() string {
 	return a.Name
 }
+
 func (a MinAccount) GetEmail() string {
 	return a.Email
 }
+
 func (a MinAccount) GetRole() string {
 	return a.Role
 }

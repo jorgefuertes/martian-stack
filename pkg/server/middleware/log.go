@@ -3,20 +3,21 @@ package middleware
 import (
 	"net/http"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/server_error"
 )
 
 type loggerService interface {
 	Request(id, method, path, ip, sessID string, status int, err error)
 }
 
-func NewLog(l loggerService) server.Handler {
-	return func(c server.Ctx) error {
+func NewLog(l loggerService) ctx.Handler {
+	return func(c ctx.Ctx) error {
 		err := c.Next()
 		code := c.Status()
 
 		if err != nil {
-			e, ok := err.(server.HttpError)
+			e, ok := err.(server_error.Error)
 			if ok {
 				code = e.Code
 			} else {

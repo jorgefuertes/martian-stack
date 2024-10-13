@@ -4,8 +4,9 @@ import (
 	"os"
 
 	"git.martianoids.com/martianoids/martian-stack/pkg/server"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/httpconst"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/middleware"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
 )
 
@@ -33,7 +34,7 @@ func main() {
 }
 
 func registerRoutes(srv *server.Server) {
-	srv.Route(httpconst.MethodGet, "/", func(c server.Ctx) error {
+	srv.Route(web.MethodGet, "/", func(c ctx.Ctx) error {
 		return c.SendString("Welcome to the Home Page")
 	})
 }

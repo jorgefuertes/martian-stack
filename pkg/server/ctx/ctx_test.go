@@ -1,4 +1,4 @@
-package server_test
+package ctx_test
 
 import (
 	"encoding/json"
@@ -7,14 +7,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCtxMiddleware(t *testing.T) {
-	makeMw := func(t *testing.T, order int) server.Handler {
-		return func(c server.Ctx) error {
+	makeMw := func(t *testing.T, order int) ctx.Handler {
+		return func(c ctx.Ctx) error {
 			msg := fmt.Sprintf("mw %d in\n", order)
 			require.NoError(t, c.SendString(msg))
 			err := c.Next()
@@ -27,7 +27,7 @@ func TestCtxMiddleware(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	c := server.NewCtx(w, req, makeMw(t, 0), makeMw(t, 1), makeMw(t, 2))
+	c := ctx.New(w, req, makeMw(t, 0), makeMw(t, 1), makeMw(t, 2))
 
 	// execute the whole chain
 	require.NoError(t, c.Next())
@@ -44,10 +44,10 @@ func TestCtxMiddleware(t *testing.T) {
 }
 
 func TestResponseWriting(t *testing.T) {
-	getNewCtx := func() (*httptest.ResponseRecorder, *http.Request, server.Ctx) {
+	getNewCtx := func() (*httptest.ResponseRecorder, *http.Request, ctx.Ctx) {
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		c := server.NewCtx(w, req, nil)
+		c := ctx.New(w, req, nil)
 
 		return w, req, c
 	}

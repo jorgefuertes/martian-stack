@@ -4,17 +4,18 @@ import (
 	"net/http"
 
 	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/httpconst"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
 )
 
 // method: httpconst.Method
 // path: path to be handled, params can be defined as :param or {param}
-func (s *Server) Route(method httpconst.Method, path string, h Handler) {
-	if !httpconst.IsValidMethod(method) {
-		method = httpconst.MethodGet
+func (s *Server) Route(method web.Method, path string, h ctx.Handler) {
+	if !web.IsValidMethod(method) {
+		method = web.MethodGet
 	}
 
-	if !httpconst.IsMethodAny(method) {
+	if !web.IsMethodAny(method) {
 		path = method.String() + " " + path
 	}
 
@@ -28,7 +29,7 @@ func (s *Server) Route(method httpconst.Method, path string, h Handler) {
 			mw = append(mw, notFoundMiddleware)
 		}
 
-		c := NewCtx(w, r, append(mw, h)...)
+		c := ctx.New(w, r, append(mw, h)...)
 
 		// execute all the handlers in a "next" chain
 		if err := c.Next(); err != nil {

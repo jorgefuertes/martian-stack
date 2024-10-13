@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/cache"
 )
 
@@ -16,8 +16,8 @@ const (
 	NoSessionAutoStart bool = false
 )
 
-func NewSession(cacheSvc cache.Service, autostart bool) server.Handler {
-	return func(c server.Ctx) error {
+func NewSession(cacheSvc cache.Service, autostart bool) ctx.Handler {
+	return func(c ctx.Ctx) error {
 		if autostart {
 			if err := StartSession(c, cacheSvc); err != nil {
 				return err
@@ -39,7 +39,7 @@ func NewSession(cacheSvc cache.Service, autostart bool) server.Handler {
 	}
 }
 
-func StartSession(c server.Ctx, cacheSvc cache.Service) error {
+func StartSession(c ctx.Ctx, cacheSvc cache.Service) error {
 	id := c.GetCookie(cookieName)
 
 	if id == "" {

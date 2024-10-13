@@ -7,8 +7,9 @@ import (
 
 	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/httpconst"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/middleware"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/server_error"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -43,7 +44,7 @@ func TestServer(t *testing.T) {
 
 	t.Run("request", func(t *testing.T) {
 		t.Run("Home Page", func(t *testing.T) {
-			res, err := call(httpconst.MethodGet, "", nil, "/", nil)
+			res, err := call(web.MethodGet, "", nil, "/", nil)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusOK, res.StatusCode)
 			body := bodyAsString(t, res)
@@ -52,7 +53,7 @@ func TestServer(t *testing.T) {
 		})
 
 		t.Run("hello world", func(t *testing.T) {
-			res, err := call(httpconst.MethodGet, "", nil, "/hello", nil)
+			res, err := call(web.MethodGet, "", nil, "/hello", nil)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusOK, res.StatusCode)
 			body := bodyAsString(t, res)
@@ -79,11 +80,11 @@ func TestServer(t *testing.T) {
 		checkLogHas(t, logWriter, logger.LevelError, http.StatusInternalServerError, "Internal Server Error")
 
 		t.Run("json error", func(t *testing.T) {
-			res, err := call(http.MethodGet, httpconst.MIMEApplicationJSON, nil, "/error/500", nil)
+			res, err := call(http.MethodGet, web.MIMEApplicationJSON, nil, "/error/500", nil)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
 
-			e := server.HttpError{}
+			e := server_error.New()
 			err = json.NewDecoder(res.Body).Decode(&e)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusInternalServerError, e.Code)
@@ -134,7 +135,7 @@ func TestServer(t *testing.T) {
 		res, err := call(http.MethodGet, "", nil, "/json-reply-test", nil)
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, res.StatusCode)
-		assert.Equal(t, httpconst.MIMEApplicationJSON, res.Header.Get(httpconst.HeaderContentType))
+		assert.Equal(t, web.MIMEApplicationJSON, res.Header.Get(web.HeaderContentType))
 		body := bodyAsString(t, res)
 		assert.Equal(t, `{"name":"John","age":30}`, body)
 		checkLogHas(t, logWriter, logger.LevelInfo, http.StatusOK, "")

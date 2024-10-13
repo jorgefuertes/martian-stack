@@ -5,13 +5,15 @@ import (
 	"net/http"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/httpconst"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/server_error"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
 )
 
 type Server struct {
 	srv          *http.Server
 	mux          *http.ServeMux
-	handlers     []Handler
+	handlers     []ctx.Handler
 	errorHandler ErrorHandler
 }
 
@@ -32,15 +34,15 @@ func New(host, port string, timeoutSeconds int) *Server {
 	s := &Server{
 		srv:          httpSrv,
 		mux:          mux,
-		handlers:     []Handler{},
+		handlers:     []ctx.Handler{},
 		errorHandler: defaultErrorHandler,
 	}
 
-	s.Route(httpconst.MethodAny, "/", func(c Ctx) error {
-		return c.Error(http.StatusNotFound, ErrNotFound)
+	s.Route(web.MethodAny, "/", func(c ctx.Ctx) error {
+		return c.Error(http.StatusNotFound, server_error.ErrNotFound)
 	})
 
-	s.Route(httpconst.MethodGet, "/server/ready", func(c Ctx) error {
+	s.Route(web.MethodGet, "/server/ready", func(c ctx.Ctx) error {
 		return c.SendString("OK")
 	})
 
@@ -81,7 +83,7 @@ func (s *Server) Stop() error {
 	return s.srv.Shutdown(ctx)
 }
 
-func (s *Server) Use(mw ...Handler) {
+func (s *Server) Use(mw ...ctx.Handler) {
 	s.handlers = append(s.handlers, mw...)
 }
 

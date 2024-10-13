@@ -1,4 +1,4 @@
-package server
+package ctx
 
 import (
 	"bytes"
@@ -15,8 +15,9 @@ import (
 	"time"
 
 	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/httpconst"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/server_error"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/session"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
 	"git.martianoids.com/martianoids/martian-stack/pkg/store"
 	uuid "github.com/nu7hatch/gouuid"
 )
@@ -32,7 +33,7 @@ type Ctx struct {
 	statusCode int
 }
 
-func NewCtx(wr http.ResponseWriter, req *http.Request, handlers ...Handler) Ctx {
+func New(wr http.ResponseWriter, req *http.Request, handlers ...Handler) Ctx {
 	// not allowing nil
 	for i, h := range handlers {
 		if h == nil {
@@ -106,23 +107,23 @@ func (c Ctx) Status() int {
 }
 
 func (c Ctx) Accept() string {
-	return c.GetRequestHeader(httpconst.HeaderAccept)
+	return c.GetRequestHeader(web.HeaderAccept)
 }
 
 func (c Ctx) AcceptsJSON() bool {
-	return c.GetRequestHeader(httpconst.HeaderAccept) == httpconst.MIMEApplicationJSON
+	return c.GetRequestHeader(web.HeaderAccept) == web.MIMEApplicationJSON
 }
 
 func (c Ctx) AcceptsHTML() bool {
-	return c.GetRequestHeader(httpconst.HeaderAccept) == httpconst.MIMETextHTML
+	return c.GetRequestHeader(web.HeaderAccept) == web.MIMETextHTML
 }
 
 func (c Ctx) AcceptsPlainText() bool {
-	return c.GetRequestHeader(httpconst.HeaderAccept) == httpconst.MIMETextPlain
+	return c.GetRequestHeader(web.HeaderAccept) == web.MIMETextPlain
 }
 
 func (c Ctx) SetContentType(contentType string) {
-	c.SetHeader(httpconst.HeaderContentType, contentType)
+	c.SetHeader(web.HeaderContentType, contentType)
 }
 
 func (c Ctx) WithHeader(key, value string) Ctx {
@@ -142,19 +143,19 @@ func (c Ctx) WithStatus(code int) Ctx {
 // set content-type as text/html and write the html string
 // set status to http.StatusOK if no prior code is set
 func (c Ctx) SendHTML(s string) error {
-	return c.WithHeader(httpconst.HeaderContentType, httpconst.MIMETextHTML).Write([]byte(s))
+	return c.WithHeader(web.HeaderContentType, web.MIMETextHTML).Write([]byte(s))
 }
 
 // set content-type as text/plain and write the string
 // set status to http.StatusOK if no prior code is set
 func (c Ctx) SendString(s string) error {
-	return c.WithHeader(httpconst.HeaderContentType, httpconst.MIMETextPlain).Write([]byte(s))
+	return c.WithHeader(web.HeaderContentType, web.MIMETextPlain).Write([]byte(s))
 }
 
 // set content-type as application/html and write marshalled object as json string
 // set status to http.StatusOK if no prior code is set
 func (c Ctx) SendJSON(obj any) error {
-	c.SetHeader(httpconst.HeaderContentType, httpconst.MIMEApplicationJSON)
+	c.SetHeader(web.HeaderContentType, web.MIMEApplicationJSON)
 	b, err := json.Marshal(obj)
 	if err != nil {
 		return err
@@ -167,8 +168,8 @@ func (c Ctx) SendJSON(obj any) error {
 // Content-Disposition: attachment; filename="logo.png"
 // Status: http.StatusOK if no prior code is set
 func (c Ctx) SendAttachment(filename string, contents *bytes.Buffer) error {
-	c.SetHeader(httpconst.HeaderContentType, mime.TypeByExtension(filename))
-	c.SetHeader(httpconst.HeaderContentDisposition, "attachment; filename="+filename)
+	c.SetHeader(web.HeaderContentType, mime.TypeByExtension(filename))
+	c.SetHeader(web.HeaderContentDisposition, "attachment; filename="+filename)
 
 	return c.Write(contents.Bytes())
 }
@@ -180,7 +181,7 @@ func (c Ctx) Write(b []byte) error {
 }
 
 // helper to compose an HttpError to be used as error return
-func (c Ctx) Error(code int, message any) HttpError {
+func (c Ctx) Error(code int, message any) server_error.Error {
 	var msg string
 
 	switch m := message.(type) {
@@ -192,7 +193,7 @@ func (c Ctx) Error(code int, message any) HttpError {
 		msg = http.StatusText(code)
 	}
 
-	return HttpError{Code: code, Msg: msg}
+	return server_error.Error{Code: code, Msg: msg}
 }
 
 func (c Ctx) Param(key string) string {
@@ -222,7 +223,7 @@ func (c Ctx) Render(f Component) error {
 }
 
 func (c Ctx) SetCookie(name, value string, expire time.Duration) {
-	c.SetHeader(httpconst.HeaderSetCookie, fmt.Sprintf("%s=%s; Max-Age=%0f; Path=/; Domain=%s;",
+	c.SetHeader(web.HeaderSetCookie, fmt.Sprintf("%s=%s; Max-Age=%0f; Path=/; Domain=%s;",
 		name, value, expire.Seconds(), c.req.Host))
 }
 
