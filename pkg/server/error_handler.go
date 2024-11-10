@@ -9,7 +9,6 @@ import (
 type ErrorHandler func(c ctx.Ctx, err error)
 
 func defaultErrorHandler(c ctx.Ctx, err error) {
-	e := server_error.New()
 	e, ok := err.(server_error.Error)
 	if !ok {
 		e = server_error.New().WithMsg(err.Error())

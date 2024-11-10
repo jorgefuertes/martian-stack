@@ -64,6 +64,18 @@ func TestLoggerService(t *testing.T) {
 			assert.Contains(t, textLine, fmt.Sprintf("count=%d", i))
 		}
 	})
+
+	t.Run("JSON Logger", func(t *testing.T) {
+		l := logger.New(wr, logger.JsonFormat, logger.LevelDebug)
+		for i := 0; i < 1000; i++ {
+			l.From("test", "testing").Debug(testMsg)
+			checkLine(
+				t,
+				wr,
+				logLine{Level: slog.LevelDebug.String(), Component: "test", Action: "testing", Msg: testMsg},
+			)
+		}
+	})
 }
 
 func getFirstLine(t *testing.T, w *helper.Writer) []byte {

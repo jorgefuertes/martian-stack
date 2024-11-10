@@ -1,12 +1,16 @@
 package helper
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"slices"
 	"sync"
 )
+
+var ErrNullBytes = errors.New("null bytes detected in input")
 
 type Writer struct {
 	lines [][]byte
@@ -21,10 +25,24 @@ func (w *Writer) Write(data []byte) (n int, err error) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 
-	if data[len(data)-1] == '\n' {
-		data = slices.Delete(data, len(data)-1, len(data))
+	fmt.Printf("Data received (%d bytes): '%s'\n", len(data), string(data))
+
+	if len(data) == 0 {
+		return 0, nil
 	}
-	w.lines = append(w.lines, data)
+
+	dataCopy := make([]byte, len(data))
+	copy(dataCopy, data)
+
+	if dataCopy[len(dataCopy)-1] == '\n' {
+		dataCopy = dataCopy[:len(dataCopy)-1]
+	}
+
+	if bytes.Contains(dataCopy, []byte{0}) {
+		return 0, ErrNullBytes
+	}
+
+	w.lines = append(w.lines, dataCopy)
 	return len(data), nil
 }
 
@@ -45,7 +63,11 @@ func (w *Writer) Read() ([]byte, error) {
 	if len(w.lines) == 0 {
 		return []byte{}, io.EOF
 	}
-	line := w.lines[0]
+
+	// Hacer una copia profunda de la línea
+	line := make([]byte, len(w.lines[0]))
+	copy(line, w.lines[0])
+
 	w.lines = slices.Delete(w.lines, 0, 1)
 	return line, nil
 }

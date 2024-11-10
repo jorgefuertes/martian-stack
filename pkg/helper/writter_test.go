@@ -7,6 +7,7 @@ import (
 
 	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
 
+	"github.com/jaswdr/faker/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -46,15 +47,18 @@ func TestReadJSON(t *testing.T) {
 		City string
 	}
 
-	user := User{Name: "John", Age: 30, City: "New York"}
-
 	w := helper.NewWriter()
-	n, err := w.WriteJSON(user)
-	require.NoError(t, err)
-	require.NotZero(t, n)
 
-	var u User
-	err = w.ReadJSON(&u)
-	require.NoError(t, err)
-	assert.Equal(t, user, u)
+	for i := 0; i < 1000; i++ {
+		f := faker.New()
+		user := User{Name: f.Person().Name(), Age: f.UInt8Between(18, 99), City: f.Address().City()}
+		n, err := w.WriteJSON(user)
+		require.NoError(t, err)
+		require.NotZero(t, n)
+
+		var u User
+		err = w.ReadJSON(&u)
+		require.NoError(t, err)
+		assert.Equal(t, user, u)
+	}
 }
