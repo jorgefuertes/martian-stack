@@ -3,7 +3,6 @@ package adapter
 import (
 	"encoding/json"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/validation"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -96,8 +95,4 @@ func (a *MinAccount) MarshalJSON() ([]byte, error) {
 
 	encoded, err := json.Marshal((*Alias)(a))
 	return encoded, err
-}
-
-func (a *MinAccount) Validate() *validation.ErrorContainer {
-	return validation.NewErrorContainer()
 }
