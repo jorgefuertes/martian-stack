@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/server_error"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/servererror"
 )
 
 type loggerService interface {
@@ -17,7 +17,7 @@ func NewLog(l loggerService) ctx.Handler {
 		code := c.Status()
 
 		if err != nil {
-			e, ok := err.(server_error.Error)
+			e, ok := err.(servererror.Error)
 			if ok {
 				code = e.Code
 			} else {

@@ -2,16 +2,16 @@ package server
 
 import (
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/server_error"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/servererror"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/view"
 )
 
 type ErrorHandler func(c ctx.Ctx, err error)
 
 func defaultErrorHandler(c ctx.Ctx, err error) {
-	e, ok := err.(server_error.Error)
+	e, ok := err.(servererror.Error)
 	if !ok {
-		e = server_error.New().WithMsg(err.Error())
+		e = servererror.New().WithMsg(err.Error())
 	}
 
 	if c.AcceptsJSON() {
@@ -28,7 +28,7 @@ func defaultErrorHandler(c ctx.Ctx, err error) {
 // and overwrites the server previous cath-all.
 func notFoundMiddleware(c ctx.Ctx) error {
 	if c.Path() != "/" {
-		return server_error.ErrNotFound
+		return servererror.ErrNotFound
 	}
 
 	return c.Next()

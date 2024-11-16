@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/server_error"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/servererror"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
 )
 
@@ -39,7 +39,7 @@ func New(host, port string, timeoutSeconds int) *Server {
 	}
 
 	s.Route(web.MethodAny, "/", func(c ctx.Ctx) error {
-		return c.Error(http.StatusNotFound, server_error.ErrNotFound)
+		return c.Error(http.StatusNotFound, servererror.ErrNotFound)
 	})
 
 	s.Route(web.MethodGet, "/server/ready", func(c ctx.Ctx) error {

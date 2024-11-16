@@ -8,7 +8,7 @@ import (
 	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/middleware"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/server_error"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/servererror"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
 	"github.com/stretchr/testify/assert"
@@ -84,7 +84,7 @@ func TestServer(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
 
-			e := server_error.New()
+			e := servererror.New()
 			err = json.NewDecoder(res.Body).Decode(&e)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusInternalServerError, e.Code)

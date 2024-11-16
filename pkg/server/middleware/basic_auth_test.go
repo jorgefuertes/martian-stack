@@ -7,7 +7,7 @@ import (
 
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/middleware"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/server_error"
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/servererror"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,7 +24,7 @@ func TestBasicAuthMw(t *testing.T) {
 
 		err = mw(c)
 		assert.Error(t, err)
-		httpErr := &server_error.Error{}
+		httpErr := &servererror.Error{}
 		assert.ErrorAs(t, err, httpErr)
 		assert.Equal(t, http.StatusUnauthorized, httpErr.Code)
 		assert.Equal(t, http.StatusText(http.StatusUnauthorized), httpErr.Msg)
@@ -40,7 +40,7 @@ func TestBasicAuthMw(t *testing.T) {
 
 		err = mw(c)
 		assert.Error(t, err)
-		httpErr := server_error.New()
+		httpErr := servererror.New()
 		assert.ErrorAs(t, err, &httpErr)
 		assert.Equal(t, http.StatusUnauthorized, httpErr.Code)
 		assert.Equal(t, http.StatusText(http.StatusUnauthorized), httpErr.Msg)
@@ -80,7 +80,7 @@ func TestBasicAuthMw(t *testing.T) {
 				c := ctx.New(w, req, nil)
 				err = mw(c)
 				require.Error(t, err)
-				httpErr := server_error.New()
+				httpErr := servererror.New()
 				assert.ErrorAs(t, err, &httpErr)
 				assert.Equal(t, http.StatusBadRequest, httpErr.Code)
 				assert.Equal(t, http.StatusText(http.StatusBadRequest), httpErr.Msg)

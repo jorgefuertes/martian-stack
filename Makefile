@@ -7,20 +7,19 @@ gen: check-executor
 	@executor run -d "Generating templates" -c "templ generate -lazy"
 
 start-dev: check-executor
-	@executor run -d "Starting MongoDB" -c "scripts/pod.sh mongo start"
 	@executor run -d "Starting Redis" -c "scripts/pod.sh redis start"
 
 stop-dev: check-executor
-	@executor run -d "Stopping MongoDB" -c "scripts/pod.sh mongo stop"
 	@executor run -d "Stopping Redis" -c "scripts/pod.sh redis stop"
 
 status-dev: check-executor
-	@executor run -d "Checking MongoDB" -c "scripts/pod.sh mongo status"
 	@executor run -d "Checking Redis" -c "scripts/pod.sh redis status"
 
 test: start-dev gen
-	@executor run -d "Running tests" -c "go test ./..."
-	@make stop-dev
+	@(set -e; err=0; \
+		executor run -d "Running tests" -c "go test ./..." || err=$$?; \
+		make stop-dev; \
+		exit $$err)
 
 test-clean: check-executor
 	@executor run -d "Cleaning test cache" -c "go clean -testcache"
