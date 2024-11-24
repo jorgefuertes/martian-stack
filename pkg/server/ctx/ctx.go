@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"slices"
 
+	"git.martianoids.com/martianoids/martian-stack/pkg/server/adapter"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/session"
 	"git.martianoids.com/martianoids/martian-stack/pkg/store"
 	uuid "github.com/nu7hatch/gouuid"
@@ -72,4 +73,15 @@ func (c Ctx) ID() string {
 
 func (c Ctx) Status() int {
 	return c.statusCode
+}
+
+func (c Ctx) SetCurrentAccount(a adapter.Account) {
+	c.store.Set("current_account", a)
+}
+
+func (c Ctx) GetCurrentAccount() adapter.Account {
+	var a adapter.Account
+	_ = c.store.Get("current_account", &a)
+
+	return a
 }

@@ -12,8 +12,12 @@ func (c Ctx) Method() string {
 	return c.req.Method
 }
 
+func (c Ctx) URL() *url.URL {
+	return c.req.URL
+}
+
 func (c Ctx) Path() string {
-	return c.req.RequestURI
+	return c.req.URL.Path
 }
 
 func (c Ctx) UserIP() string {
