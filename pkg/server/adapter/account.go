@@ -21,13 +21,13 @@ var (
 type Account struct {
 	ID              string    `json:"id,omitempty"`
 	CreatedAt       time.Time `json:"created_at"`
-	Last            time.Time `json:"last"`
+	UpdatedAt       time.Time `json:"updated_at"`
+	LastLogin       time.Time `json:"last"`
 	Username        string    `json:"username"     validate:"required,min=4,max=50"`
 	Name            string    `json:"name"         validate:"required,min=3,max=120"`
 	Email           string    `json:"email"        validate:"required,email"`
-	Validated       bool      `json:"validated"`
+	Enabled         bool      `json:"enabled"`
 	Role            string    `json:"role"         validate:"required,min=3,max=10"  default:"user"`
-	Enabled         bool      `json:"enabled"                                        default:"true"`
 	CryptedPassword []byte    `json:"_"`
 }
 
