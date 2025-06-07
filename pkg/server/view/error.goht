@@ -1,18 +1,11 @@
 package view
 
 type httpError interface {
-Status() string
-Error() string
+	Status() string
+	Error() string
 }
 
-templ Error(err httpError) {
-<!DOCTYPE html>
-<html lang="es">
-
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Error { err.Status() }</title>
+/*
 		<style>
 			html,
 			body {
@@ -45,16 +38,13 @@ templ Error(err httpError) {
 				color: #333;
 			}
 		</style>
-	</head>
+*/
 
-	<body>
-		<main class="main">
-			<div class="error">
-				<h1 class="title">Error { err.Status() }</h1>
-				<p class="message">{ err.Error() }</p>
-			</div>
-		</main>
-	</body>
-
-</html>
+@goht Error(err httpError) {
+	= @render Layout(err.Status())
+		%main.main
+			.error
+				%h1.title Error #{err.Status()}
+				%hr
+				%p.message #{err.Error()}
 }

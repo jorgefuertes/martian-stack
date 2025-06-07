@@ -4,7 +4,7 @@ check-executor:
 	@if ! command -v executor &> /dev/null; then echo "Installing executor..."; brew tap github.com/jorgefuertes/executor; brew install executor; fi
 
 gen: check-executor
-	@executor run -d "Generating templates" -c "templ generate -lazy"
+	@executor run -d "Generating templates" -c "goht generate"
 
 start-dev: check-executor
 	@executor run -d "Starting Redis" -c "scripts/pod.sh redis start"

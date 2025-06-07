@@ -25,7 +25,6 @@ type Rule struct {
 	Allowed    []string
 }
 
-// TODO: implement
 func NewSessionAuth(r AccountRepository, rules ...Rule) ctx.Handler {
 	return func(c ctx.Ctx) error {
 		if c.Session() == nil {
@@ -34,6 +33,14 @@ func NewSessionAuth(r AccountRepository, rules ...Rule) ctx.Handler {
 
 		if !strings.HasPrefix(c.Path(), "/auth") {
 			return c.Next()
+		}
+
+		if c.Path() == "/auth/login" {
+			return c.SendString("login")
+		}
+
+		if c.Path() == "/auth/logout" {
+			return c.SendString("logout")
 		}
 
 		return c.Next()
