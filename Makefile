@@ -1,18 +1,15 @@
 SHELL=/usr/bin/env bash
 
-check-executor:
-	@if ! command -v executor &> /dev/null; then echo "Installing executor..."; brew tap github.com/jorgefuertes/executor; brew install executor; fi
+gen:
+	@executor run -d "Generating templates" -c "go tool goht generate"
 
-gen: check-executor
-	@executor run -d "Generating templates" -c "goht generate"
-
-start-dev: check-executor
+start-dev:
 	@executor run -d "Starting Redis" -c "scripts/pod.sh redis start"
 
-stop-dev: check-executor
+stop-dev:
 	@executor run -d "Stopping Redis" -c "scripts/pod.sh redis stop"
 
-status-dev: check-executor
+status-dev:
 	@executor run -d "Checking Redis" -c "scripts/pod.sh redis status"
 
 test: start-dev gen
@@ -21,11 +18,11 @@ test: start-dev gen
 		make stop-dev; \
 		exit $$err)
 
-test-clean: check-executor
+test-clean:
 	@executor run -d "Cleaning test cache" -c "go clean -testcache"
 	@make test
 
-lint: check-executor
+lint:
 	@executor run -d "staticcheck" -c "staticcheck ./..."
 	@executor run -d "gofumpt" -c "gofumpt -d -l -extra ."
 	@executor run -d "vet" -c "go vet ./..."
