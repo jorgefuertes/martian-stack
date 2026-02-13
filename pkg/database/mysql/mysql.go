@@ -11,16 +11,16 @@ const driverName = "mysql"
 
 // Config represents MySQL/MariaDB-specific configuration
 type Config struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	Database string
-	Charset  string
+	Host      string
+	Port      int
+	User      string
+	Password  string
+	Database  string
+	Charset   string
 	ParseTime bool
-	Loc      string // Location for time.Time
-	TLS      string // TLS configuration: true, false, skip-verify, preferred
-	Timeout  string // Connection timeout
+	Loc       string // Location for time.Time
+	TLS       string // TLS configuration: true, false, skip-verify, preferred
+	Timeout   string // Connection timeout
 }
 
 // DefaultConfig returns a Config with sensible defaults

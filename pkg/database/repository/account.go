@@ -49,7 +49,6 @@ func (r *SQLAccountRepository) Get(id string) (*adapter.Account, error) {
 		&acc.Role,
 		&acc.CryptedPassword,
 	)
-
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, adapter.ErrAccountNotFound
@@ -106,7 +105,6 @@ func (r *SQLAccountRepository) GetByEmail(email string) (*adapter.Account, error
 		&acc.Role,
 		&acc.CryptedPassword,
 	)
-
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, adapter.ErrAccountNotFound
@@ -147,7 +145,6 @@ func (r *SQLAccountRepository) GetByUsername(username string) (*adapter.Account,
 		&acc.Role,
 		&acc.CryptedPassword,
 	)
-
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, adapter.ErrAccountNotFound
@@ -207,7 +204,6 @@ func (r *SQLAccountRepository) Create(a *adapter.Account) error {
 		a.Role,
 		a.CryptedPassword,
 	)
-
 	if err != nil {
 		// Check for duplicate key errors
 		if isDuplicateKeyError(err) {
@@ -256,7 +252,6 @@ func (r *SQLAccountRepository) Update(a *adapter.Account) error {
 		a.CryptedPassword,
 		a.ID,
 	)
-
 	if err != nil {
 		if isDuplicateKeyError(err) {
 			return database.ErrDuplicateKey

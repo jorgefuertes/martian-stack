@@ -23,10 +23,12 @@ test-clean:
 	@make test
 
 lint:
-	@executor run -d "staticcheck" -c "staticcheck ./..."
-	@executor run -d "gofumpt" -c "gofumpt -d -l -extra ."
+	@executor run -d "staticcheck" -c "go tool staticcheck ./..."
+	@executor run -d "gofumpt" -c "go tool gofumpt -d -l -extra ."
 	@executor run -d "vet" -c "go vet ./..."
-	@executor run -d "Linting with golangci-lint" -c "GOGC=80 /Users/queru/Desarrollo/gocode/bin/golangci-lint run --fast --concurrency 16"
+	@executor run -d "golangci-lint" -c "GOGC=80 go tool golangci-lint run --fast --concurrency 16"
+	@executor run -d "markdownlint" -c "trunk check --filter=markdownlint --all"
+	@executor run -d "govulncheck" -c "go tool govulncheck ./..."
 
 run: start-dev gen
 	go run cmd/testserver/main.go

@@ -63,9 +63,9 @@ func TestCreateAccountsTable(t *testing.T) {
 
 func TestSQLiteConfig(t *testing.T) {
 	tests := []struct {
-		name     string
-		config   *Config
-		wantErr  bool
+		name    string
+		config  *Config
+		wantErr bool
 	}{
 		{
 			name: "valid config",

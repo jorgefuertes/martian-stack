@@ -8,9 +8,11 @@ import (
 	driver "github.com/redis/go-redis/v9"
 )
 
-const DefaultHost = "localhost"
-const DefaultPort = 6379
-const DefaultDB = 0
+const (
+	DefaultHost = "localhost"
+	DefaultPort = 6379
+	DefaultDB   = 0
+)
 
 type Service struct {
 	driver *driver.Client

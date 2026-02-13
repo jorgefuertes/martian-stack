@@ -46,12 +46,12 @@ type PasswordResetTokenRepository interface {
 
 // TokenRepositories combines both token repositories
 type TokenRepositories struct {
-	RefreshToken      RefreshTokenRepository
+	RefreshToken       RefreshTokenRepository
 	PasswordResetToken PasswordResetTokenRepository
 }
 
 // NewRefreshToken creates a new RefreshToken with the given parameters
-func NewRefreshToken(userID string, tokenHash string, expiresIn time.Duration) *RefreshToken {
+func NewRefreshToken(userID, tokenHash string, expiresIn time.Duration) *RefreshToken {
 	now := time.Now()
 	return &RefreshToken{
 		UserID:    userID,
@@ -62,7 +62,7 @@ func NewRefreshToken(userID string, tokenHash string, expiresIn time.Duration) *
 }
 
 // NewPasswordResetToken creates a new PasswordResetToken with the given parameters
-func NewPasswordResetToken(userID string, tokenHash string, expiresIn time.Duration) *PasswordResetToken {
+func NewPasswordResetToken(userID, tokenHash string, expiresIn time.Duration) *PasswordResetToken {
 	now := time.Now()
 	return &PasswordResetToken{
 		UserID:    userID,

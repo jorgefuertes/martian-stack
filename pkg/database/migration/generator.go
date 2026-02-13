@@ -47,12 +47,12 @@ var Migration%d = migration.Migration{
 	Version: %d,
 	Name:    "%s",
 	Description: "Add description here",
-	Up: ` + "`" + `
+	Up: `+"`"+`
 -- Add your SQL here
-` + "`" + `,
-	Down: ` + "`" + `
+`+"`"+`,
+	Down: `+"`"+`
 -- Add rollback SQL here
-` + "`" + `,
+`+"`"+`,
 }
 `, version, name, version, version, name)
 }

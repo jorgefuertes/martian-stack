@@ -8,8 +8,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const testSecret = "this-is-a-test-secret-key-32bytes!"
-const testSecret2 = "this-is-another-secret-key-32bts!"
+const (
+	testSecret  = "this-is-a-test-secret-key-32bytes!"
+	testSecret2 = "this-is-another-secret-key-32bts!"
+)
 
 func testConfig(t *testing.T) *Config {
 	t.Helper()

@@ -122,7 +122,6 @@ func (s *Service) ValidateToken(tokenString string) (*Claims, error) {
 		}
 		return s.config.SecretKey, nil
 	})
-
 	if err != nil {
 		if errors.Is(err, jwt.ErrTokenExpired) {
 			return nil, ErrExpiredToken

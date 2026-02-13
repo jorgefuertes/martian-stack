@@ -55,10 +55,10 @@ type AccountRepository interface {
 
 // Handlers provides authentication HTTP handlers
 type Handlers struct {
-	repo              AccountRepository
-	jwtService        *jwt.Service
-	refreshTokenRepo  adapter.RefreshTokenRepository
-	resetTokenRepo    adapter.PasswordResetTokenRepository
+	repo             AccountRepository
+	jwtService       *jwt.Service
+	refreshTokenRepo adapter.RefreshTokenRepository
+	resetTokenRepo   adapter.PasswordResetTokenRepository
 }
 
 // NewHandlers creates new authentication handlers

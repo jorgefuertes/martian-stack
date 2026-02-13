@@ -82,7 +82,6 @@ func (r *SQLRefreshTokenRepository) GetByTokenHash(tokenHash string) (*adapter.R
 		&token.CreatedAt,
 		&revokedAt,
 	)
-
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, adapter.ErrTokenNotFound

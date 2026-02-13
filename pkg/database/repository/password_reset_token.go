@@ -82,7 +82,6 @@ func (r *SQLPasswordResetTokenRepository) GetByTokenHash(tokenHash string) (*ada
 		&token.CreatedAt,
 		&usedAt,
 	)
-
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, adapter.ErrTokenNotFound
