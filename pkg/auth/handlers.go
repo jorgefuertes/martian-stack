@@ -107,13 +107,13 @@ func (h *Handlers) Login() ctx.Handler {
 			return c.Error(http.StatusUnauthorized, "Invalid credentials")
 		}
 
-		// Check if account is enabled
-		if !account.Enabled {
-			return c.Error(http.StatusForbidden, "Account is disabled")
+		// Validate password and check if account is enabled
+		// Use the same error message for all failures to prevent account enumeration
+		if err := account.ValidatePassword(req.Password); err != nil {
+			return c.Error(http.StatusUnauthorized, "Invalid credentials")
 		}
 
-		// Validate password
-		if err := account.ValidatePassword(req.Password); err != nil {
+		if !account.Enabled {
 			return c.Error(http.StatusUnauthorized, "Invalid credentials")
 		}
 
@@ -286,8 +286,8 @@ func (h *Handlers) Me() ctx.Handler {
 			return c.Error(http.StatusUnauthorized, "Not authenticated")
 		}
 
-		// Get fresh user data
-		account, err := h.repo.GetByEmail(claims.Email)
+		// Get fresh user data by ID (immutable identifier)
+		account, err := h.repo.Get(claims.UserID)
 		if err != nil {
 			return c.Error(http.StatusNotFound, "User not found")
 		}
@@ -312,7 +312,6 @@ type PasswordResetRequestRequest struct {
 // PasswordResetRequestResponse represents the response to a password reset request
 type PasswordResetRequestResponse struct {
 	Message string `json:"message"`
-	Token   string `json:"token,omitempty"` // Only for development/testing
 }
 
 // RequestPasswordReset handles password reset requests
@@ -363,13 +362,12 @@ func (h *Handlers) RequestPasswordReset() ctx.Handler {
 			return c.Error(http.StatusInternalServerError, "Failed to store reset token")
 		}
 
-		// TODO: In production, send email with reset link
-		// For now, return the token in the response (development only!)
-		// In production, remove the Token field from response
+		// TODO: Send email with reset link containing rawToken
+		// The rawToken should be included in the email link, never in the API response
+		_ = rawToken
 
 		return c.SendJSON(PasswordResetRequestResponse{
 			Message: "If an account with that email exists, a password reset link has been sent",
-			Token:   rawToken, // Remove this in production!
 		})
 	}
 }

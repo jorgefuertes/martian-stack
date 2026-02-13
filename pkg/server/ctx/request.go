@@ -2,6 +2,7 @@ package ctx
 
 import (
 	"encoding/json"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -46,7 +47,11 @@ func (c Ctx) GetCookie(name string) string {
 	return cookie.Value
 }
 
-// unmarshal the request body into dest
+// MaxBodySize is the default maximum request body size (1 MB)
+const MaxBodySize int64 = 1 << 20
+
+// unmarshal the request body into dest, limiting the body size to prevent abuse
 func (c Ctx) UnmarshalBody(dest any) error {
-	return json.NewDecoder(c.req.Body).Decode(dest)
+	limited := http.MaxBytesReader(c.wr, c.req.Body, MaxBodySize)
+	return json.NewDecoder(limited).Decode(dest)
 }

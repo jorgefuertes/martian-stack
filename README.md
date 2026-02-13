@@ -3,7 +3,7 @@
 A complete, production-ready web framework for building modern applications in Go.
 
 [![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go)](https://go.dev/)
-[![Tests](https://img.shields.io/badge/tests-51%2F51%20passing-success)](/)
+[![Tests](https://img.shields.io/badge/tests-56%2F56%20passing-success)](/)
 [![License](https://img.shields.io/badge/license-Private-red)](/)
 
 ## 🚀 Features
@@ -16,11 +16,22 @@ A complete, production-ready web framework for building modern applications in G
 - **Redis** - Caching & sessions
 
 ### 🔐 **JWT Authentication**
-- Access & refresh tokens
+- Access & refresh tokens with rotation
 - Role-based access control (RBAC)
-- Login/Logout/Refresh handlers
+- Login/Logout/Refresh/Password-reset handlers
 - Stateless token validation
 - Middleware protection
+- Minimum 32-byte secret key enforcement
+
+### 🔒 **Security**
+- Secure cookies (HttpOnly, Secure, SameSite)
+- Security headers middleware (CSP, X-Frame-Options, HSTS-ready)
+- Request body size limits (1 MB default)
+- Constant-time authentication comparisons
+- bcrypt password hashing
+- SHA256 token hashing (never store plaintext)
+- SQL injection prevention via parameterized queries
+- Anti-enumeration responses on auth endpoints
 
 ### 🔄 **Database Migrations**
 - Version-based migrations
@@ -38,7 +49,7 @@ A complete, production-ready web framework for building modern applications in G
 - HTMX templates
 
 ### 🧪 **Comprehensive Testing**
-- 51 tests (100% passing)
+- 56 tests (100% passing)
 - Integration tests
 - In-memory databases
 - Mock repositories
@@ -73,6 +84,7 @@ func main() {
 
     // Middleware
     srv.Use(
+        middleware.NewSecurityHeaders(),
         middleware.NewCors(middleware.NewCorsOptions()),
         middleware.NewLog(l),
     )
@@ -163,19 +175,27 @@ func main() {
         return
     }
 
-    // Repository
+    // Repositories
     accountRepo := repository.NewSQLAccountRepository(db)
+    refreshTokenRepo := repository.NewSQLRefreshTokenRepository(db)
+    resetTokenRepo := repository.NewSQLPasswordResetTokenRepository(db)
 
-    // JWT Service
-    jwtService := jwt.NewService(jwt.DefaultConfig("your-secret-key"))
+    // JWT Service (secret key must be at least 32 bytes)
+    jwtCfg, err := jwt.DefaultConfig("your-secret-key-at-least-32-bytes!")
+    if err != nil {
+        l.Error("JWT config error: " + err.Error())
+        return
+    }
+    jwtService := jwt.NewService(jwtCfg)
 
     // Auth
-    authHandlers := auth.NewHandlers(accountRepo, jwtService)
+    authHandlers := auth.NewHandlers(accountRepo, jwtService, refreshTokenRepo, resetTokenRepo)
     authMw := auth.NewMiddleware(jwtService)
 
     // Server
     srv := server.New("localhost", "8080", 30)
     srv.Use(
+        middleware.NewSecurityHeaders(),
         middleware.NewCors(middleware.NewCorsOptions()),
         middleware.NewLog(l),
     )
@@ -328,8 +348,12 @@ repo.Delete(id)
 #### JWT Tokens
 
 ```go
-// Setup
-jwtService := jwt.NewService(jwt.DefaultConfig("your-secret-key"))
+// Setup (secret key must be at least 32 bytes)
+jwtCfg, err := jwt.DefaultConfig("your-secret-key-at-least-32-bytes!")
+if err != nil {
+    log.Fatal(err) // jwt.ErrWeakSecretKey
+}
+jwtService := jwt.NewService(jwtCfg)
 
 // Generate tokens
 accessToken, _ := jwtService.GenerateAccessToken(
@@ -464,6 +488,7 @@ srv := server.New("localhost", "8080", 30)
 
 // Add middleware
 srv.Use(
+    middleware.NewSecurityHeaders(),   // X-Content-Type-Options, X-Frame-Options, CSP, etc.
     middleware.NewCors(middleware.NewCorsOptions()),
     middleware.NewLog(logger),
 )
@@ -542,15 +567,16 @@ go test ./... -v
 
 ### Test Statistics
 
-- **Total Tests:** 51
+- **Total Tests:** 56
 - **Pass Rate:** 100%
 - **Coverage:** 100% (core components)
 
 **Breakdown:**
-- JWT: 15 tests
+- JWT: 16 tests (includes secret key validation)
 - SQL Repository: 18 tests
 - Migration System: 13 tests
 - SQLite: 5 tests
+- Middleware: 4 tests (CORS, security headers)
 
 ## 🏗️ Project Structure
 
@@ -598,8 +624,8 @@ DB_NAME=myapp
 DB_USER=user
 DB_PASSWORD=password
 
-# JWT
-JWT_SECRET=your-secret-key
+# JWT (secret must be at least 32 bytes)
+JWT_SECRET=your-secret-key-at-least-32-bytes!
 JWT_ACCESS_EXPIRY=15m
 JWT_REFRESH_EXPIRY=168h   # 7 days
 

@@ -7,6 +7,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+const minSecretKeyLength = 32
+
 var (
 	// ErrInvalidToken is returned when token validation fails
 	ErrInvalidToken = errors.New("invalid token")
@@ -16,6 +18,9 @@ var (
 
 	// ErrInvalidClaims is returned when token claims are invalid
 	ErrInvalidClaims = errors.New("invalid token claims")
+
+	// ErrWeakSecretKey is returned when the secret key is too short
+	ErrWeakSecretKey = errors.New("secret key must be at least 32 bytes")
 )
 
 // Claims represents JWT claims for authentication
@@ -42,14 +47,19 @@ type Config struct {
 	RefreshTokenExpiry time.Duration
 }
 
-// DefaultConfig returns a Config with sensible defaults
-func DefaultConfig(secretKey string) *Config {
+// DefaultConfig returns a Config with sensible defaults.
+// The secretKey must be at least 32 bytes long.
+func DefaultConfig(secretKey string) (*Config, error) {
+	if len(secretKey) < minSecretKeyLength {
+		return nil, ErrWeakSecretKey
+	}
+
 	return &Config{
 		SecretKey:          []byte(secretKey),
 		Issuer:             "martian-stack",
 		AccessTokenExpiry:  15 * time.Minute,
 		RefreshTokenExpiry: 7 * 24 * time.Hour, // 7 days
-	}
+	}, nil
 }
 
 // Service provides JWT token operations
@@ -130,23 +140,6 @@ func (s *Service) ValidateToken(tokenString string) (*Claims, error) {
 	}
 
 	return claims, nil
-}
-
-// RefreshAccessToken generates a new access token from a valid refresh token
-func (s *Service) RefreshAccessToken(refreshToken string) (string, error) {
-	claims, err := s.ValidateToken(refreshToken)
-	if err != nil {
-		return "", err
-	}
-
-	// Refresh tokens should only contain UserID
-	if claims.Username != "" || claims.Email != "" {
-		return "", ErrInvalidToken
-	}
-
-	// Note: In production, you'd fetch user details from database here
-	// For now, we return a token with only UserID
-	return s.GenerateAccessToken(claims.UserID, "", "", "")
 }
 
 // GetExpiryTime returns the expiry time from a token

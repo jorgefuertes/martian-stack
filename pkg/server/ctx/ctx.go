@@ -3,8 +3,6 @@ package ctx
 import (
 	"context"
 	"net/http"
-	"slices"
-
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/adapter"
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/session"
 	"git.martianoids.com/martianoids/martian-stack/pkg/store"
@@ -23,12 +21,15 @@ type Ctx struct {
 }
 
 func New(wr http.ResponseWriter, req *http.Request, handlers ...Handler) Ctx {
-	// not allowing nil
-	for i, h := range handlers {
-		if h == nil {
-			handlers = slices.Delete(handlers, i, 1)
+	// filter out nil handlers
+	n := 0
+	for _, h := range handlers {
+		if h != nil {
+			handlers[n] = h
+			n++
 		}
 	}
+	handlers = handlers[:n]
 
 	var id string
 	u, err := uuid.NewV4()

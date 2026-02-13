@@ -43,10 +43,11 @@ func DefaultAllowedHeaders() []string {
 
 func NewCors(options CorsOptions) ctx.Handler {
 	return func(c ctx.Ctx) error {
+		c.SetHeader(web.HeaderAccessControlAllowOrigin, options.Origin)
+
 		if c.Method() == http.MethodOptions {
-			c.WithHeader(web.HeaderAccessControlAllowOrigin, options.Origin).
-				WithHeader(web.HeaderAccessControlAllowMethods, strings.Join(options.AllowedMethods, ",")).
-				WithHeader(web.HeaderAccessControlAllowHeaders, strings.Join(options.AllowedMethods, ", ")).
+			c.WithHeader(web.HeaderAccessControlAllowMethods, strings.Join(options.AllowedMethods, ", ")).
+				WithHeader(web.HeaderAccessControlAllowHeaders, strings.Join(options.AllowedHeaders, ", ")).
 				WithStatus(http.StatusNoContent)
 
 			return nil

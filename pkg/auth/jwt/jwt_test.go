@@ -8,8 +8,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const testSecret = "this-is-a-test-secret-key-32bytes!"
+const testSecret2 = "this-is-another-secret-key-32bts!"
+
+func testConfig(t *testing.T) *Config {
+	t.Helper()
+	cfg, err := DefaultConfig(testSecret)
+	require.NoError(t, err)
+	return cfg
+}
+
 func TestNewService(t *testing.T) {
-	cfg := DefaultConfig("test-secret")
+	cfg := testConfig(t)
 	service := NewService(cfg)
 
 	assert.NotNil(t, service)
@@ -17,7 +27,7 @@ func TestNewService(t *testing.T) {
 }
 
 func TestGenerateAccessToken(t *testing.T) {
-	service := NewService(DefaultConfig("test-secret"))
+	service := NewService(testConfig(t))
 
 	token, err := service.GenerateAccessToken("user-123", "johndoe", "john@example.com", "user")
 	assert.NoError(t, err)
@@ -33,7 +43,7 @@ func TestGenerateAccessToken(t *testing.T) {
 }
 
 func TestGenerateRefreshToken(t *testing.T) {
-	service := NewService(DefaultConfig("test-secret"))
+	service := NewService(testConfig(t))
 
 	token, err := service.GenerateRefreshToken("user-123")
 	assert.NoError(t, err)
@@ -50,7 +60,7 @@ func TestGenerateRefreshToken(t *testing.T) {
 }
 
 func TestValidateToken(t *testing.T) {
-	service := NewService(DefaultConfig("test-secret"))
+	service := NewService(testConfig(t))
 
 	// Generate a valid token
 	token, err := service.GenerateAccessToken("user-123", "johndoe", "john@example.com", "admin")
@@ -67,7 +77,7 @@ func TestValidateToken(t *testing.T) {
 }
 
 func TestValidateToken_Invalid(t *testing.T) {
-	service := NewService(DefaultConfig("test-secret"))
+	service := NewService(testConfig(t))
 
 	tests := []struct {
 		name  string
@@ -102,8 +112,13 @@ func TestValidateToken_Invalid(t *testing.T) {
 }
 
 func TestValidateToken_WrongSecret(t *testing.T) {
-	service1 := NewService(DefaultConfig("secret-1"))
-	service2 := NewService(DefaultConfig("secret-2"))
+	cfg1, err := DefaultConfig(testSecret)
+	require.NoError(t, err)
+	service1 := NewService(cfg1)
+
+	cfg2, err := DefaultConfig(testSecret2)
+	require.NoError(t, err)
+	service2 := NewService(cfg2)
 
 	// Generate token with service1
 	token, err := service1.GenerateAccessToken("user-123", "johndoe", "john@example.com", "user")
@@ -117,7 +132,7 @@ func TestValidateToken_WrongSecret(t *testing.T) {
 }
 
 func TestValidateToken_Expired(t *testing.T) {
-	cfg := DefaultConfig("test-secret")
+	cfg := testConfig(t)
 	cfg.AccessTokenExpiry = 1 * time.Millisecond // Very short expiry
 	service := NewService(cfg)
 
@@ -134,7 +149,7 @@ func TestValidateToken_Expired(t *testing.T) {
 }
 
 func TestGetExpiryTime(t *testing.T) {
-	service := NewService(DefaultConfig("test-secret"))
+	service := NewService(testConfig(t))
 
 	token, err := service.GenerateAccessToken("user-123", "johndoe", "john@example.com", "user")
 	require.NoError(t, err)
@@ -146,7 +161,7 @@ func TestGetExpiryTime(t *testing.T) {
 }
 
 func TestGetExpiryTime_InvalidToken(t *testing.T) {
-	service := NewService(DefaultConfig("test-secret"))
+	service := NewService(testConfig(t))
 
 	expiryTime, err := service.GetExpiryTime("invalid-token")
 	assert.Error(t, err)
@@ -154,7 +169,7 @@ func TestGetExpiryTime_InvalidToken(t *testing.T) {
 }
 
 func TestIsExpired(t *testing.T) {
-	service := NewService(DefaultConfig("test-secret"))
+	service := NewService(testConfig(t))
 
 	// Valid token (not expired)
 	token, err := service.GenerateAccessToken("user-123", "johndoe", "john@example.com", "user")
@@ -164,7 +179,7 @@ func TestIsExpired(t *testing.T) {
 	assert.False(t, isExpired)
 
 	// Expired token
-	cfg := DefaultConfig("test-secret")
+	cfg := testConfig(t)
 	cfg.AccessTokenExpiry = 1 * time.Millisecond
 	expiredService := NewService(cfg)
 
@@ -178,23 +193,46 @@ func TestIsExpired(t *testing.T) {
 }
 
 func TestIsExpired_InvalidToken(t *testing.T) {
-	service := NewService(DefaultConfig("test-secret"))
+	service := NewService(testConfig(t))
 
 	isExpired := service.IsExpired("invalid-token")
 	assert.True(t, isExpired)
 }
 
 func TestDefaultConfig(t *testing.T) {
-	cfg := DefaultConfig("my-secret")
+	cfg, err := DefaultConfig(testSecret)
+	require.NoError(t, err)
 
-	assert.Equal(t, []byte("my-secret"), cfg.SecretKey)
+	assert.Equal(t, []byte(testSecret), cfg.SecretKey)
 	assert.Equal(t, "martian-stack", cfg.Issuer)
 	assert.Equal(t, 15*time.Minute, cfg.AccessTokenExpiry)
 	assert.Equal(t, 7*24*time.Hour, cfg.RefreshTokenExpiry)
 }
 
+func TestDefaultConfig_WeakKey(t *testing.T) {
+	// Too short
+	cfg, err := DefaultConfig("short")
+	assert.ErrorIs(t, err, ErrWeakSecretKey)
+	assert.Nil(t, cfg)
+
+	// Empty
+	cfg, err = DefaultConfig("")
+	assert.ErrorIs(t, err, ErrWeakSecretKey)
+	assert.Nil(t, cfg)
+
+	// Exactly 31 bytes (still too short)
+	cfg, err = DefaultConfig("1234567890123456789012345678901")
+	assert.ErrorIs(t, err, ErrWeakSecretKey)
+	assert.Nil(t, cfg)
+
+	// Exactly 32 bytes (minimum valid)
+	cfg, err = DefaultConfig("12345678901234567890123456789012")
+	assert.NoError(t, err)
+	assert.NotNil(t, cfg)
+}
+
 func TestTokenClaims(t *testing.T) {
-	service := NewService(DefaultConfig("test-secret"))
+	service := NewService(testConfig(t))
 
 	token, err := service.GenerateAccessToken("user-123", "johndoe", "john@example.com", "admin")
 	require.NoError(t, err)
@@ -215,7 +253,7 @@ func TestTokenClaims(t *testing.T) {
 }
 
 func TestTokenRotation(t *testing.T) {
-	service := NewService(DefaultConfig("test-secret"))
+	service := NewService(testConfig(t))
 
 	// Generate multiple tokens for same user
 	token1, err := service.GenerateAccessToken("user-123", "johndoe", "john@example.com", "user")
@@ -243,7 +281,7 @@ func TestTokenRotation(t *testing.T) {
 }
 
 func TestRefreshTokenExpiry(t *testing.T) {
-	cfg := DefaultConfig("test-secret")
+	cfg := testConfig(t)
 	cfg.RefreshTokenExpiry = 1 * time.Millisecond
 	service := NewService(cfg)
 

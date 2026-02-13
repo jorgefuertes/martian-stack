@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
 	"net/http"
@@ -11,7 +12,13 @@ import (
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
 )
 
+var basicAuthRegexp = regexp.MustCompile(`^Basic ([a-zA-Z0-9+/=]*)$`)
+
 func NewBasicAuth(username, password string) ctx.Handler {
+	// pre-compute expected hashes to prevent length-based timing leaks
+	expectedUserHash := sha256.Sum256([]byte(username))
+	expectedPassHash := sha256.Sum256([]byte(password))
+
 	return func(c ctx.Ctx) error {
 		auth := c.GetRequestHeader(web.HeaderAuthorization)
 
@@ -21,14 +28,13 @@ func NewBasicAuth(username, password string) ctx.Handler {
 			return c.Error(http.StatusUnauthorized, nil)
 		}
 
-		r := regexp.MustCompile(`^Basic ([a-zA-Z0-9+/=]*)$`)
-		if !r.MatchString(auth) {
+		if !basicAuthRegexp.MatchString(auth) {
 			c.SetHeader(web.HeaderWWWAuthenticate, "Basic realm=\"Restricted\"")
 			return c.Error(http.StatusBadRequest, nil)
 		}
 
 		// decode
-		payload := r.FindStringSubmatch(auth)
+		payload := basicAuthRegexp.FindStringSubmatch(auth)
 		if len(payload) != 2 {
 			c.SetHeader(web.HeaderWWWAuthenticate, "Basic realm=\"Restricted\"")
 			return c.Error(http.StatusBadRequest, nil)
@@ -47,14 +53,19 @@ func NewBasicAuth(username, password string) ctx.Handler {
 			return c.Error(http.StatusBadRequest, nil)
 		}
 
-		// time constant compare
-		if subtle.ConstantTimeCompare([]byte(pair[0]), []byte(username)) != 1 ||
-			subtle.ConstantTimeCompare([]byte(pair[1]), []byte(password)) != 1 {
+		// constant-time compare using SHA256 hashes to prevent length-based timing leaks
+		givenUserHash := sha256.Sum256([]byte(pair[0]))
+		givenPassHash := sha256.Sum256([]byte(pair[1]))
+
+		userMatch := subtle.ConstantTimeCompare(givenUserHash[:], expectedUserHash[:])
+		passMatch := subtle.ConstantTimeCompare(givenPassHash[:], expectedPassHash[:])
+
+		if userMatch != 1 || passMatch != 1 {
 			c.SetHeader(web.HeaderWWWAuthenticate, "Basic realm=\"Restricted\"")
 			return c.Error(http.StatusUnauthorized, nil)
 		}
 
 		// auth OK
-		return nil
+		return c.Next()
 	}
 }

@@ -3,8 +3,9 @@ package ctx
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"mime"
+	"net/http"
+	"strings"
 	"time"
 
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
@@ -21,8 +22,23 @@ func (c Ctx) WithHeader(key, value string) Ctx {
 }
 
 func (c Ctx) SetCookie(name, value string, expire time.Duration) {
-	c.SetHeader(web.HeaderSetCookie, fmt.Sprintf("%s=%s; Max-Age=%0f; Path=/; Domain=%s;",
-		name, value, expire.Seconds(), c.req.Host))
+	cookie := &http.Cookie{
+		Name:     name,
+		Value:    value,
+		Path:     "/",
+		Domain:   c.req.Host,
+		MaxAge:   int(expire.Seconds()),
+		HttpOnly: true,
+		Secure:   c.req.TLS != nil || strings.EqualFold(c.req.Header.Get("X-Forwarded-Proto"), "https"),
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	// strip port from domain if present
+	if idx := strings.IndexByte(cookie.Domain, ':'); idx != -1 {
+		cookie.Domain = cookie.Domain[:idx]
+	}
+
+	http.SetCookie(c.wr, cookie)
 }
 
 // explicit status code, set it before any write
@@ -61,8 +77,13 @@ func (c Ctx) SendJSON(obj any) error {
 // Content-Disposition: attachment; filename="logo.png"
 // Status: http.StatusOK if no prior code is set
 func (c Ctx) SendAttachment(filename string, contents *bytes.Buffer) error {
+	// sanitize filename: remove path separators and quote for header safety
+	sanitized := strings.ReplaceAll(filename, "\\", "")
+	sanitized = strings.ReplaceAll(sanitized, "/", "")
+	sanitized = strings.ReplaceAll(sanitized, "\"", "")
+
 	c.SetHeader(web.HeaderContentType, mime.TypeByExtension(filename))
-	c.SetHeader(web.HeaderContentDisposition, "attachment; filename="+filename)
+	c.SetHeader(web.HeaderContentDisposition, "attachment; filename=\""+sanitized+"\"")
 
 	return c.Write(contents.Bytes())
 }
