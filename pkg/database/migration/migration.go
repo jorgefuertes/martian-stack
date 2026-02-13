@@ -124,7 +124,11 @@ func (m *Migrator) Down(ctx context.Context) error {
 	}
 
 	if targetMigration == nil {
-		return fmt.Errorf("%w: migration %d not found in registered migrations", database.ErrMigrationFailed, lastVersion)
+		return fmt.Errorf(
+			"%w: migration %d not found in registered migrations",
+			database.ErrMigrationFailed,
+			lastVersion,
+		)
 	}
 
 	if targetMigration.Down == "" {

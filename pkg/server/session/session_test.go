@@ -19,7 +19,10 @@ func TestSession(t *testing.T) {
 		svc  cache.Service
 	}{
 		{name: "memory", svc: memory.New()},
-		{name: "redis", svc: redis.New(logger.NewNull(), redis.DefaultHost, redis.DefaultPort, "", "", redis.DefaultDB)},
+		{
+			name: "redis",
+			svc:  redis.New(logger.NewNull(), redis.DefaultHost, redis.DefaultPort, "", "", redis.DefaultDB),
+		},
 	}
 
 	defer func() {

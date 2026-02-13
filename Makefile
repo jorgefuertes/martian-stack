@@ -25,6 +25,7 @@ test-clean:
 lint:
 	@go tool executor run -d "staticcheck" -c "go tool staticcheck ./..."
 	@go tool executor run -d "gofumpt" -c "go tool gofumpt -d -l -extra ."
+	@go tool executor run -d "golines" -c "go tool golines -w -m 120 --no-reformat-tags ."
 	@go tool executor run -d "vet" -c "go vet ./..."
 	@go tool executor run -d "golangci-lint" -c "GOGC=80 go tool golangci-lint run --fast --concurrency 16"
 	@go tool executor run -d "govulncheck" -c "go tool govulncheck ./..."

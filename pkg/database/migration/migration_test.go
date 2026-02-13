@@ -97,10 +97,12 @@ func TestMigrator_Up(t *testing.T) {
 
 	// Verify tables exist
 	var tableName string
-	err = migrator.db.QueryRow(ctx, "SELECT name FROM sqlite_master WHERE type='table' AND name='users'").Scan(&tableName)
+	err = migrator.db.QueryRow(ctx, "SELECT name FROM sqlite_master WHERE type='table' AND name='users'").
+		Scan(&tableName)
 	assert.NoError(t, err)
 
-	err = migrator.db.QueryRow(ctx, "SELECT name FROM sqlite_master WHERE type='table' AND name='posts'").Scan(&tableName)
+	err = migrator.db.QueryRow(ctx, "SELECT name FROM sqlite_master WHERE type='table' AND name='posts'").
+		Scan(&tableName)
 	assert.NoError(t, err)
 }
 
@@ -166,7 +168,8 @@ func TestMigrator_Down(t *testing.T) {
 
 	// Verify posts table was dropped
 	var tableName string
-	err = migrator.db.QueryRow(ctx, "SELECT name FROM sqlite_master WHERE type='table' AND name='posts'").Scan(&tableName)
+	err = migrator.db.QueryRow(ctx, "SELECT name FROM sqlite_master WHERE type='table' AND name='posts'").
+		Scan(&tableName)
 	assert.Error(t, err) // Should not exist
 }
 
