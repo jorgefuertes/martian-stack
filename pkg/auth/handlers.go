@@ -40,28 +40,39 @@ type RefreshRequest struct {
 
 // RefreshResponse represents a token refresh response
 type RefreshResponse struct {
-	AccessToken string    `json:"access_token"`
-	ExpiresAt   time.Time `json:"expires_at"`
+	AccessToken  string    `json:"access_token"`
+	RefreshToken string    `json:"refresh_token"`
+	ExpiresAt    time.Time `json:"expires_at"`
 }
 
 // AccountRepository defines the interface for account operations
 type AccountRepository interface {
 	GetByEmail(email string) (*adapter.Account, error)
 	GetByUsername(username string) (*adapter.Account, error)
+	Get(id string) (*adapter.Account, error)
 	Update(a *adapter.Account) error
 }
 
 // Handlers provides authentication HTTP handlers
 type Handlers struct {
-	repo       AccountRepository
-	jwtService *jwt.Service
+	repo              AccountRepository
+	jwtService        *jwt.Service
+	refreshTokenRepo  adapter.RefreshTokenRepository
+	resetTokenRepo    adapter.PasswordResetTokenRepository
 }
 
 // NewHandlers creates new authentication handlers
-func NewHandlers(repo AccountRepository, jwtService *jwt.Service) *Handlers {
+func NewHandlers(
+	repo AccountRepository,
+	jwtService *jwt.Service,
+	refreshTokenRepo adapter.RefreshTokenRepository,
+	resetTokenRepo adapter.PasswordResetTokenRepository,
+) *Handlers {
 	return &Handlers{
-		repo:       repo,
-		jwtService: jwtService,
+		repo:             repo,
+		jwtService:       jwtService,
+		refreshTokenRepo: refreshTokenRepo,
+		resetTokenRepo:   resetTokenRepo,
 	}
 }
 
@@ -123,16 +134,24 @@ func (h *Handlers) Login() ctx.Handler {
 			return c.Error(http.StatusInternalServerError, "Failed to generate token")
 		}
 
-		refreshToken, err := h.jwtService.GenerateRefreshToken(account.ID)
+		// Generate refresh token (raw token to send to user)
+		rawRefreshToken, tokenHash, err := adapter.GenerateSecureToken()
 		if err != nil {
 			return c.Error(http.StatusInternalServerError, "Failed to generate refresh token")
+		}
+
+		// Store refresh token in database
+		refreshTokenExpiry := 7 * 24 * time.Hour // 7 days
+		refreshTokenRecord := adapter.NewRefreshToken(account.ID, tokenHash, refreshTokenExpiry)
+		if err := h.refreshTokenRepo.Create(refreshTokenRecord); err != nil {
+			return c.Error(http.StatusInternalServerError, "Failed to store refresh token")
 		}
 
 		expiresAt, _ := h.jwtService.GetExpiryTime(accessToken)
 
 		response := LoginResponse{
 			AccessToken:  accessToken,
-			RefreshToken: refreshToken,
+			RefreshToken: rawRefreshToken,
 			ExpiresAt:    expiresAt,
 			User: UserInfo{
 				ID:       account.ID,
@@ -147,7 +166,7 @@ func (h *Handlers) Login() ctx.Handler {
 	}
 }
 
-// Refresh handles token refresh
+// Refresh handles token refresh with rotation
 func (h *Handlers) Refresh() ctx.Handler {
 	return func(c ctx.Ctx) error {
 		var req RefreshRequest
@@ -159,50 +178,75 @@ func (h *Handlers) Refresh() ctx.Handler {
 			return c.Error(http.StatusBadRequest, "Refresh token is required")
 		}
 
-		// Validate refresh token
-		claims, err := h.jwtService.ValidateToken(req.RefreshToken)
+		// Hash the provided token to look it up in the database
+		tokenHash, err := adapter.HashToken(req.RefreshToken)
+		if err != nil {
+			return c.Error(http.StatusBadRequest, "Invalid refresh token format")
+		}
+
+		// Get refresh token from database
+		storedToken, err := h.refreshTokenRepo.GetByTokenHash(tokenHash)
 		if err != nil {
 			return c.Error(http.StatusUnauthorized, "Invalid refresh token")
 		}
 
-		// Get account to generate new access token with current data
-		var account *adapter.Account
-		if claims.Email != "" {
-			account, err = h.repo.GetByEmail(claims.Email)
-			if err != nil {
-				// Account not found, but we can still refresh with old claims
-				account = nil
+		// Validate token
+		if !storedToken.IsValid() {
+			if storedToken.IsExpired() {
+				return c.Error(http.StatusUnauthorized, "Refresh token expired")
 			}
+			if storedToken.IsRevoked() {
+				return c.Error(http.StatusUnauthorized, "Refresh token revoked")
+			}
+			return c.Error(http.StatusUnauthorized, "Invalid refresh token")
+		}
+
+		// Get account to generate new tokens with current data
+		account, err := h.repo.Get(storedToken.UserID)
+		if err != nil {
+			return c.Error(http.StatusUnauthorized, "Account not found")
+		}
+
+		// Check if account is enabled
+		if !account.Enabled {
+			return c.Error(http.StatusForbidden, "Account is disabled")
+		}
+
+		// Revoke the old refresh token (token rotation)
+		if err := h.refreshTokenRepo.Revoke(tokenHash); err != nil {
+			// Log error but continue - we don't want to fail the refresh
 		}
 
 		// Generate new access token
-		var accessToken string
-		if account != nil {
-			accessToken, err = h.jwtService.GenerateAccessToken(
-				account.ID,
-				account.Username,
-				account.Email,
-				account.Role,
-			)
-		} else {
-			// Fallback: generate token with stored claims
-			accessToken, err = h.jwtService.GenerateAccessToken(
-				claims.UserID,
-				claims.Username,
-				claims.Email,
-				claims.Role,
-			)
-		}
-
+		accessToken, err := h.jwtService.GenerateAccessToken(
+			account.ID,
+			account.Username,
+			account.Email,
+			account.Role,
+		)
 		if err != nil {
 			return c.Error(http.StatusInternalServerError, "Failed to generate token")
+		}
+
+		// Generate new refresh token
+		rawRefreshToken, newTokenHash, err := adapter.GenerateSecureToken()
+		if err != nil {
+			return c.Error(http.StatusInternalServerError, "Failed to generate refresh token")
+		}
+
+		// Store new refresh token in database
+		refreshTokenExpiry := 7 * 24 * time.Hour // 7 days
+		newRefreshTokenRecord := adapter.NewRefreshToken(account.ID, newTokenHash, refreshTokenExpiry)
+		if err := h.refreshTokenRepo.Create(newRefreshTokenRecord); err != nil {
+			return c.Error(http.StatusInternalServerError, "Failed to store refresh token")
 		}
 
 		expiresAt, _ := h.jwtService.GetExpiryTime(accessToken)
 
 		response := RefreshResponse{
-			AccessToken: accessToken,
-			ExpiresAt:   expiresAt,
+			AccessToken:  accessToken,
+			RefreshToken: rawRefreshToken,
+			ExpiresAt:    expiresAt,
 		}
 
 		return c.SendJSON(response)
@@ -212,13 +256,20 @@ func (h *Handlers) Refresh() ctx.Handler {
 // Logout handles user logout
 func (h *Handlers) Logout() ctx.Handler {
 	return func(c ctx.Ctx) error {
-		// In a stateless JWT system, logout is handled client-side by removing the token
-		// For enhanced security, you could:
-		// 1. Add the token to a blacklist (requires storage)
-		// 2. Use short-lived tokens with refresh tokens
-		// 3. Implement token revocation
+		// Get user from context (set by auth middleware)
+		var claims jwt.Claims
+		if err := c.Store().Get("user", &claims); err != nil {
+			// Not authenticated, but that's okay - just return success
+			return c.SendJSON(map[string]string{
+				"message": "Logged out successfully",
+			})
+		}
 
-		// For now, return success
+		// Revoke all refresh tokens for this user
+		if err := h.refreshTokenRepo.RevokeAll(claims.UserID); err != nil {
+			// Log error but don't fail logout
+		}
+
 		// Client should remove the token from storage
 		return c.SendJSON(map[string]string{
 			"message": "Logged out successfully",
@@ -250,5 +301,157 @@ func (h *Handlers) Me() ctx.Handler {
 		}
 
 		return c.SendJSON(userInfo)
+	}
+}
+
+// PasswordResetRequestRequest represents a password reset request payload
+type PasswordResetRequestRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+// PasswordResetRequestResponse represents the response to a password reset request
+type PasswordResetRequestResponse struct {
+	Message string `json:"message"`
+	Token   string `json:"token,omitempty"` // Only for development/testing
+}
+
+// RequestPasswordReset handles password reset requests
+func (h *Handlers) RequestPasswordReset() ctx.Handler {
+	return func(c ctx.Ctx) error {
+		var req PasswordResetRequestRequest
+		if err := c.UnmarshalBody(&req); err != nil {
+			return c.Error(http.StatusBadRequest, "Invalid request body")
+		}
+
+		if req.Email == "" {
+			return c.Error(http.StatusBadRequest, "Email is required")
+		}
+
+		// Get account by email
+		account, err := h.repo.GetByEmail(req.Email)
+		if err != nil {
+			// For security, always return success even if email doesn't exist
+			// This prevents email enumeration attacks
+			return c.SendJSON(PasswordResetRequestResponse{
+				Message: "If an account with that email exists, a password reset link has been sent",
+			})
+		}
+
+		// Check if account is enabled
+		if !account.Enabled {
+			// For security, return success even if account is disabled
+			return c.SendJSON(PasswordResetRequestResponse{
+				Message: "If an account with that email exists, a password reset link has been sent",
+			})
+		}
+
+		// Delete any existing password reset tokens for this user
+		if err := h.resetTokenRepo.DeleteByUserID(account.ID); err != nil {
+			// Log error but continue
+		}
+
+		// Generate password reset token
+		rawToken, tokenHash, err := adapter.GenerateSecureToken()
+		if err != nil {
+			return c.Error(http.StatusInternalServerError, "Failed to generate reset token")
+		}
+
+		// Store password reset token (valid for 1 hour)
+		resetTokenExpiry := 1 * time.Hour
+		resetToken := adapter.NewPasswordResetToken(account.ID, tokenHash, resetTokenExpiry)
+		if err := h.resetTokenRepo.Create(resetToken); err != nil {
+			return c.Error(http.StatusInternalServerError, "Failed to store reset token")
+		}
+
+		// TODO: In production, send email with reset link
+		// For now, return the token in the response (development only!)
+		// In production, remove the Token field from response
+
+		return c.SendJSON(PasswordResetRequestResponse{
+			Message: "If an account with that email exists, a password reset link has been sent",
+			Token:   rawToken, // Remove this in production!
+		})
+	}
+}
+
+// PasswordResetRequest represents a password reset payload
+type PasswordResetRequest struct {
+	Token       string `json:"token" validate:"required"`
+	NewPassword string `json:"new_password" validate:"required,min=8"`
+}
+
+// PasswordResetResponse represents the response to a password reset
+type PasswordResetResponse struct {
+	Message string `json:"message"`
+}
+
+// ResetPassword handles password reset using a valid token
+func (h *Handlers) ResetPassword() ctx.Handler {
+	return func(c ctx.Ctx) error {
+		var req PasswordResetRequest
+		if err := c.UnmarshalBody(&req); err != nil {
+			return c.Error(http.StatusBadRequest, "Invalid request body")
+		}
+
+		if req.Token == "" {
+			return c.Error(http.StatusBadRequest, "Token is required")
+		}
+
+		if req.NewPassword == "" {
+			return c.Error(http.StatusBadRequest, "New password is required")
+		}
+
+		// Hash the provided token to look it up in the database
+		tokenHash, err := adapter.HashToken(req.Token)
+		if err != nil {
+			return c.Error(http.StatusBadRequest, "Invalid token format")
+		}
+
+		// Get password reset token from database
+		storedToken, err := h.resetTokenRepo.GetByTokenHash(tokenHash)
+		if err != nil {
+			return c.Error(http.StatusUnauthorized, "Invalid or expired reset token")
+		}
+
+		// Validate token
+		if !storedToken.IsValid() {
+			if storedToken.IsExpired() {
+				return c.Error(http.StatusUnauthorized, "Reset token has expired")
+			}
+			if storedToken.IsUsed() {
+				return c.Error(http.StatusUnauthorized, "Reset token has already been used")
+			}
+			return c.Error(http.StatusUnauthorized, "Invalid reset token")
+		}
+
+		// Get account
+		account, err := h.repo.Get(storedToken.UserID)
+		if err != nil {
+			return c.Error(http.StatusNotFound, "Account not found")
+		}
+
+		// Set new password
+		if err := account.SetPassword(req.NewPassword); err != nil {
+			return c.Error(http.StatusBadRequest, err.Error())
+		}
+
+		// Update account
+		if err := h.repo.Update(account); err != nil {
+			return c.Error(http.StatusInternalServerError, "Failed to update password")
+		}
+
+		// Mark token as used
+		if err := h.resetTokenRepo.MarkAsUsed(tokenHash); err != nil {
+			// Log error but don't fail the reset
+		}
+
+		// Revoke all refresh tokens to force re-login
+		if err := h.refreshTokenRepo.RevokeAll(account.ID); err != nil {
+			// Log error but don't fail the reset
+		}
+
+		return c.SendJSON(PasswordResetResponse{
+			Message: "Password has been reset successfully",
+		})
 	}
 }
