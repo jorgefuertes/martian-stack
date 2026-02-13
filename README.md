@@ -238,7 +238,8 @@ func adminDashboardHandler(c ctx.Ctx) error {
 
 #### Supported Databases
 
-**SQLite** (recommended for development)
+#### SQLite (recommended for development)
+
 ```go
 db, _ := sqlite.New(sqlite.DefaultConfig("./app.db"))
 
@@ -376,7 +377,8 @@ expiryTime, _ := jwtService.GetExpiryTime(token)
 
 #### Login/Logout
 
-**Login Request:**
+##### Login Request
+
 ```bash
 curl -X POST http://localhost:8080/auth/login \
   -H "Content-Type: application/json" \
@@ -386,7 +388,8 @@ curl -X POST http://localhost:8080/auth/login \
   }'
 ```
 
-**Response:**
+##### Response
+
 ```json
 {
   "access_token": "eyJhbGci...",
@@ -402,7 +405,8 @@ curl -X POST http://localhost:8080/auth/login \
 }
 ```
 
-**Refresh Token:**
+##### Refresh Token
+
 ```bash
 curl -X POST http://localhost:8080/auth/refresh \
   -H "Content-Type: application/json" \
@@ -411,7 +415,8 @@ curl -X POST http://localhost:8080/auth/refresh \
   }'
 ```
 
-**Authenticated Request:**
+##### Authenticated Request
+
 ```bash
 curl http://localhost:8080/me \
   -H "Authorization: Bearer eyJhbGci..."
@@ -573,7 +578,8 @@ go test ./... -v
 - **Pass Rate:** 100%
 - **Coverage:** 100% (core components)
 
-**Breakdown:**
+#### Breakdown
+
 - JWT: 16 tests (includes secret key validation)
 - SQL Repository: 18 tests
 - Migration System: 13 tests
@@ -661,7 +667,8 @@ Private - All rights reserved.
 
 Built with ❤️ by the Martianoids team.
 
-**Dependencies:**
+### Dependencies
+
 - [pgx](https://github.com/jackc/pgx) - PostgreSQL driver
 - [go-sql-driver/mysql](https://github.com/go-sql-driver/mysql) - MySQL driver
 - [modernc.org/sqlite](https://gitlab.com/cznic/sqlite) - Pure Go SQLite
