@@ -79,4 +79,5 @@ const (
 	HeaderWWWAuthenticate = "WWW-Authenticate" // This header is sent in HTTP responses and carries authentication information (e.g., username and password) to allow access to protected resources.
 	HeaderAcceptCH        = "Accept-CH"        // (Request) Signals the client's support for Client Hints, a mechanism allowing the server to request specific pieces of information from the client before responding. This can improve efficiency by preemptively fetching resources the client is likely to need.
 	HeaderDNT             = "DNT"              // This provides an optional signal from the user regarding their Do Not Track (DNT) preference. The header value can be either 0 (disabled) or 1 (enabled) and should be sent in the request. While not mandatory for websites to respect this header, it allows users to express their preference for limiting online tracking.
+	HeaderXRequestID      = "X-Request-ID"     // A unique identifier for each request, useful for tracing and debugging across services.
 )

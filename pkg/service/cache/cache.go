@@ -4,11 +4,8 @@ import (
 	"context"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/cache/redis"
-
 	"git.martianoids.com/martianoids/martian-stack/pkg/service/cache/memory"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"git.martianoids.com/martianoids/martian-stack/pkg/service/cache/redis"
 )
 
 type Service interface {
@@ -19,7 +16,6 @@ type Service interface {
 	GetInt(ctx context.Context, key string) (int, error)
 	GetFloat(ctx context.Context, key string) (float64, error)
 	GetBytes(ctx context.Context, key string) ([]byte, error)
-	GetObjectID(ctx context.Context, key string) (primitive.ObjectID, error)
 	Exists(ctx context.Context, key string) bool
 	Keys(ctx context.Context, pattern string) ([]string, error)
 	Delete(ctx context.Context, keys ...string) error

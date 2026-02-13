@@ -43,7 +43,7 @@ func (c Ctx) SetCookie(name, value string, expire time.Duration) {
 
 // explicit status code, set it before any write
 func (c Ctx) WithStatus(code int) Ctx {
-	c.statusCode = code
+	c.state.statusCode = code
 	c.wr.WriteHeader(code)
 
 	return c
@@ -86,6 +86,14 @@ func (c Ctx) SendAttachment(filename string, contents *bytes.Buffer) error {
 	c.SetHeader(web.HeaderContentDisposition, "attachment; filename=\""+sanitized+"\"")
 
 	return c.Write(contents.Bytes())
+}
+
+// Redirect sends an HTTP redirect to the given URL with the specified status code.
+// Common codes: http.StatusMovedPermanently (301), http.StatusFound (302),
+// http.StatusSeeOther (303), http.StatusTemporaryRedirect (307).
+func (c Ctx) Redirect(code int, url string) error {
+	http.Redirect(c.wr, c.req, url, code)
+	return nil
 }
 
 func (c Ctx) Write(b []byte) error {

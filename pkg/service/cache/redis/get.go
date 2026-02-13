@@ -3,8 +3,6 @@ package redis
 import (
 	"context"
 	"encoding/json"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func (s *Service) Get(ctx context.Context, key string, dest any) error {
@@ -46,12 +44,6 @@ func (s *Service) GetBytes(ctx context.Context, key string) ([]byte, error) {
 	}
 
 	return res.Bytes()
-}
-
-func (s *Service) GetObjectID(ctx context.Context, key string) (primitive.ObjectID, error) {
-	var v primitive.ObjectID
-	err := s.Get(ctx, key, &v)
-	return v, err
 }
 
 func (s *Service) Exists(ctx context.Context, key string) bool {

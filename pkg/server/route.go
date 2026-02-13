@@ -8,9 +8,15 @@ import (
 	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
 )
 
-// method: httpconst.Method
-// path: path to be handled, params can be defined as :param or {param}
+// Route registers a route handler for the given method and path.
+// Path params can be defined as :param or {param}.
 func (s *Server) Route(method web.Method, path string, h ctx.Handler) {
+	s.route(method, path, nil, h)
+}
+
+// route is the internal route registration that supports optional extra middleware
+// inserted between server-level middleware and the handler.
+func (s *Server) route(method web.Method, path string, extra []ctx.Handler, h ctx.Handler) {
 	if !web.IsValidMethod(method) {
 		method = web.MethodGet
 	}
@@ -23,13 +29,21 @@ func (s *Server) Route(method web.Method, path string, h ctx.Handler) {
 	path = helper.ReplacePathParams(path)
 
 	s.mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
-		mw := s.handlers
+		// build chain: server middleware + [notFound] + extra middleware + handler
+		chain := make([]ctx.Handler, 0, len(s.handlers)+len(extra)+2)
+		chain = append(chain, s.handlers...)
 
 		if helper.IsRootPath(path) {
-			mw = append(mw, notFoundMiddleware)
+			chain = append(chain, notFoundMiddleware)
 		}
 
-		c := ctx.New(w, r, append(mw, h)...)
+		chain = append(chain, extra...)
+		chain = append(chain, h)
+
+		c := ctx.New(w, r, chain...)
+
+		// propagate request ID to response for tracing
+		c.SetHeader(web.HeaderXRequestID, c.ID())
 
 		// execute all the handlers in a "next" chain
 		if err := c.Next(); err != nil {

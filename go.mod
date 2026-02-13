@@ -8,11 +8,9 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/jackc/pgx/v5 v5.8.0
 	github.com/jaswdr/faker/v2 v2.9.1
-	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
 	github.com/redis/go-redis/v9 v9.17.3
 	github.com/stackus/goht v0.5.0
 	github.com/stretchr/testify v1.11.1
-	go.mongodb.org/mongo-driver v1.17.9
 	golang.org/x/crypto v0.48.0
 	modernc.org/sqlite v1.45.0
 )

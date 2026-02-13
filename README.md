@@ -3,27 +3,29 @@
 A complete, production-ready web framework for building modern applications in Go.
 
 [![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go)](https://go.dev/)
-[![Tests](https://img.shields.io/badge/tests-56%2F56%20passing-success)](/)
+[![Tests](https://img.shields.io/badge/tests-184%20passing-success)](/)
 [![License](https://img.shields.io/badge/license-Private-red)](/)
 
-## 🚀 Features
+## Features
 
-### 🗄️ **Multi-Database Support**
+### Multi-Database Support
+
 - **SQLite** - Pure Go, in-memory & file-based
 - **PostgreSQL** - Advanced features with pgx driver
 - **MySQL/MariaDB** - Full compatibility
-- **MongoDB** - Document database
 - **Redis** - Caching & sessions
 
-### 🔐 **JWT Authentication**
+### JWT Authentication
+
 - Access & refresh tokens with rotation
 - Role-based access control (RBAC)
 - Login/Logout/Refresh/Password-reset handlers
 - Stateless token validation
-- Middleware protection
+- Middleware protection (RequireAuth, RequireRole, OptionalAuth)
 - Minimum 32-byte secret key enforcement
 
-### 🔒 **Security**
+### Security
+
 - Secure cookies (HttpOnly, Secure, SameSite)
 - Security headers middleware (CSP, X-Frame-Options, HSTS-ready)
 - Request body size limits (1 MB default)
@@ -32,35 +34,47 @@ A complete, production-ready web framework for building modern applications in G
 - SHA256 token hashing (never store plaintext)
 - SQL injection prevention via parameterized queries
 - Anti-enumeration responses on auth endpoints
+- Rate limiting middleware (per-IP, fixed-window)
+- Panic recovery middleware
 
-### 🔄 **Database Migrations**
+### Database Migrations
+
 - Version-based migrations
 - Up/Down support
 - Atomic transactions
 - Status tracking
 - Easy rollback
 
-### 🌐 **HTTP Server**
-- Custom routing system
-- Middleware pipeline
-- Session management
+### HTTP Server
+
+- Custom routing with path parameters (`:param` or `{param}`)
+- Route groups with shared prefix and middleware
+- Middleware pipeline (server-level and group-level)
+- Session management with flash messages
 - CORS support
-- Error handling
-- HTMX templates
+- Content negotiation (Accept header parsing with quality values)
+- Static file serving (directory and `embed.FS`)
+- TLS/HTTPS support
+- Graceful shutdown with signal handling (SIGINT/SIGTERM)
+- Per-route timeout middleware
+- Request ID propagation (X-Request-ID)
+- HTTP redirects
+- Error handling with content negotiation (JSON/HTML/text)
+- HTMX templates (goht)
 
-### 🧪 **Comprehensive Testing**
-- 56 tests (100% passing)
-- Integration tests
-- In-memory databases
-- Mock repositories
+### Caching
 
-## 📦 Installation
+- In-memory cache with automatic expiration
+- Redis cache
+- Common interface for both backends
+
+## Installation
 
 ```bash
 go get git.martianoids.com/martianoids/martian-stack
 ```
 
-## 🏃 Quick Start
+## Quick Start
 
 ### 1. Basic Server
 
@@ -68,74 +82,106 @@ go get git.martianoids.com/martianoids/martian-stack
 package main
 
 import (
+    "os"
+
     "git.martianoids.com/martianoids/martian-stack/pkg/server"
     "git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
     "git.martianoids.com/martianoids/martian-stack/pkg/server/middleware"
+    "git.martianoids.com/martianoids/martian-stack/pkg/server/web"
     "git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
-    "os"
 )
 
 func main() {
-    // Logger
     l := logger.New(os.Stdout, logger.TextFormat, logger.LevelDebug)
 
-    // Server
     srv := server.New("localhost", "8080", 10)
-
-    // Middleware
     srv.Use(
+        middleware.NewRecovery(),
         middleware.NewSecurityHeaders(),
         middleware.NewCors(middleware.NewCorsOptions()),
         middleware.NewLog(l),
     )
 
-    // Routes
-    srv.Route("GET", "/", func(c ctx.Ctx) error {
+    srv.Route(web.MethodGet, "/", func(c ctx.Ctx) error {
         return c.SendString("Hello, Martian Stack!")
     })
 
-    // Start
-    l.From("main").Info("Starting server on :8080")
-    srv.Start()
+    // Blocks until SIGINT/SIGTERM, then graceful shutdown
+    srv.ListenAndShutdown()
 }
 ```
 
-### 2. With Database
+### 2. Route Groups
 
 ```go
-package main
+// Public routes
+srv.Route(web.MethodPost, "/auth/login", authHandlers.Login())
 
-import (
-    "context"
-    "git.martianoids.com/martianoids/martian-stack/pkg/database/sqlite"
-    "git.martianoids.com/martianoids/martian-stack/pkg/database/repository"
-    "git.martianoids.com/martianoids/martian-stack/pkg/database/migration"
-    "git.martianoids.com/martianoids/martian-stack/pkg/database/migration/migrations"
-    "git.martianoids.com/martianoids/martian-stack/pkg/server"
-)
+// API group with auth middleware
+api := srv.Group("/api/v1", authMw.RequireAuth())
+api.Route(web.MethodGet, "/users", listUsers)
+api.Route(web.MethodPost, "/users", createUser)
 
-func main() {
-    // Database
-    db, _ := sqlite.New(sqlite.DefaultConfig("./app.db"))
-    defer db.Close()
-
-    // Run migrations
-    migrator := migration.New(db)
-    migrator.RegisterMultiple(migrations.All())
-    migrator.Up(context.Background())
-
-    // Repository
-    accountRepo := repository.NewSQLAccountRepository(db)
-
-    // Server
-    srv := server.New("localhost", "8080", 30)
-
-    // Use repository in handlers...
-    srv.Start()
-}
+// Admin sub-group
+admin := api.Group("/admin", authMw.RequireRole("admin"))
+admin.Route(web.MethodGet, "/stats", getStats)
 ```
 
-### 3. Complete App with Authentication
+### 3. Static Files
+
+```go
+// Serve from directory
+srv.Static("/static/", "./public")
+
+// Serve from embedded filesystem
+//go:embed static
+var staticFiles embed.FS
+srv.StaticFS("/static/", staticFiles)
+```
+
+### 4. Rate Limiting
+
+```go
+// Global rate limiter: 60 requests per minute per IP
+srv.Use(middleware.NewRateLimit(middleware.DefaultRateLimitConfig()))
+
+// Custom config
+cfg := middleware.RateLimitConfig{
+    Max:    10,
+    Window: time.Minute,
+}
+srv.Use(middleware.NewRateLimit(cfg))
+```
+
+### 5. Per-Route Timeout
+
+```go
+import "time"
+
+// Apply timeout to specific route group
+slow := srv.Group("/reports", middleware.NewTimeout(30*time.Second))
+slow.Route(web.MethodGet, "/generate", generateReport)
+```
+
+### 6. TLS/HTTPS
+
+```go
+// Simple TLS
+srv.StartTLS("cert.pem", "key.pem")
+
+// TLS with graceful shutdown
+srv.ListenAndShutdownTLS("cert.pem", "key.pem", func() {
+    db.Close()
+})
+
+// Custom TLS config
+srv.SetTLSConfig(&tls.Config{
+    MinVersion: tls.VersionTLS13,
+})
+srv.StartTLS("cert.pem", "key.pem")
+```
+
+### 7. Complete App with Authentication
 
 ```go
 package main
@@ -145,18 +191,19 @@ import (
     "os"
 
     "git.martianoids.com/martianoids/martian-stack/pkg/auth"
-    "git.martianoids.com/martianoids/martian-stack/pkg/auth/jwt"
+    authjwt "git.martianoids.com/martianoids/martian-stack/pkg/auth/jwt"
     "git.martianoids.com/martianoids/martian-stack/pkg/database/sqlite"
     "git.martianoids.com/martianoids/martian-stack/pkg/database/repository"
     "git.martianoids.com/martianoids/martian-stack/pkg/database/migration"
     "git.martianoids.com/martianoids/martian-stack/pkg/database/migration/migrations"
     "git.martianoids.com/martianoids/martian-stack/pkg/server"
+    "git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
     "git.martianoids.com/martianoids/martian-stack/pkg/server/middleware"
+    "git.martianoids.com/martianoids/martian-stack/pkg/server/web"
     "git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
 )
 
 func main() {
-    // Logger
     l := logger.New(os.Stdout, logger.TextFormat, logger.LevelInfo)
 
     // Database
@@ -165,7 +212,6 @@ func main() {
         l.Error(err.Error())
         return
     }
-    defer db.Close()
 
     // Migrations
     migrator := migration.New(db)
@@ -180,13 +226,13 @@ func main() {
     refreshTokenRepo := repository.NewSQLRefreshTokenRepository(db)
     resetTokenRepo := repository.NewSQLPasswordResetTokenRepository(db)
 
-    // JWT Service (secret key must be at least 32 bytes)
-    jwtCfg, err := jwt.DefaultConfig("your-secret-key-at-least-32-bytes!")
+    // JWT (secret key must be at least 32 bytes)
+    jwtCfg, err := authjwt.DefaultConfig("your-secret-key-at-least-32-bytes!")
     if err != nil {
-        l.Error("JWT config error: " + err.Error())
+        l.Error(err.Error())
         return
     }
-    jwtService := jwt.NewService(jwtCfg)
+    jwtService := authjwt.NewService(jwtCfg)
 
     // Auth
     authHandlers := auth.NewHandlers(accountRepo, jwtService, refreshTokenRepo, resetTokenRepo)
@@ -195,48 +241,38 @@ func main() {
     // Server
     srv := server.New("localhost", "8080", 30)
     srv.Use(
+        middleware.NewRecovery(),
         middleware.NewSecurityHeaders(),
+        middleware.NewRateLimit(middleware.DefaultRateLimitConfig()),
         middleware.NewCors(middleware.NewCorsOptions()),
         middleware.NewLog(l),
     )
 
     // Public routes
-    srv.Route("POST", "/auth/login", authHandlers.Login())
-    srv.Route("POST", "/auth/refresh", authHandlers.Refresh())
-    srv.Route("POST", "/auth/logout", authHandlers.Logout())
+    srv.Route(web.MethodPost, "/auth/login", authHandlers.Login())
+    srv.Route(web.MethodPost, "/auth/refresh", authHandlers.Refresh())
 
     // Protected routes
-    srv.Route("GET", "/me",
-        authMw.RequireAuth(),
-        authHandlers.Me(),
-    )
+    api := srv.Group("/api", authMw.RequireAuth())
+    api.Route(web.MethodPost, "/auth/logout", authHandlers.Logout())
+    api.Route(web.MethodGet, "/me", authHandlers.Me())
 
     // Admin routes
-    srv.Route("GET", "/admin/dashboard",
-        authMw.RequireAuth(),
-        authMw.RequireRole("admin"),
-        adminDashboardHandler,
-    )
+    admin := api.Group("/admin", authMw.RequireRole("admin"))
+    admin.Route(web.MethodGet, "/dashboard", func(c ctx.Ctx) error {
+        return c.SendJSON(map[string]string{"message": "admin dashboard"})
+    })
 
-    // Start
-    l.Info("Server starting on :8080")
-    if err := srv.Start(); err != nil {
-        l.Error(err.Error())
-    }
-}
-
-func adminDashboardHandler(c ctx.Ctx) error {
-    return c.SendJSON(map[string]string{
-        "message": "Welcome to admin dashboard",
+    // Graceful shutdown: close DB when server stops
+    srv.ListenAndShutdown(func() {
+        db.Close()
     })
 }
 ```
 
-## 📚 Documentation
+## Documentation
 
 ### Database
-
-#### Supported Databases
 
 #### SQLite (recommended for development)
 
@@ -375,114 +411,17 @@ isExpired := jwtService.IsExpired(token)
 expiryTime, _ := jwtService.GetExpiryTime(token)
 ```
 
-#### Login/Logout
-
-##### Login Request
-
-```bash
-curl -X POST http://localhost:8080/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "password": "password123"
-  }'
-```
-
-##### Response
-
-```json
-{
-  "access_token": "eyJhbGci...",
-  "refresh_token": "eyJhbGci...",
-  "expires_at": "2026-02-12T20:15:00Z",
-  "user": {
-    "id": "uuid",
-    "username": "johndoe",
-    "email": "user@example.com",
-    "name": "John Doe",
-    "role": "user"
-  }
-}
-```
-
-##### Refresh Token
-
-```bash
-curl -X POST http://localhost:8080/auth/refresh \
-  -H "Content-Type: application/json" \
-  -d '{
-    "refresh_token": "eyJhbGci..."
-  }'
-```
-
-##### Authenticated Request
-
-```bash
-curl http://localhost:8080/me \
-  -H "Authorization: Bearer eyJhbGci..."
-```
-
-#### Middleware
-
-```go
-authMw := auth.NewMiddleware(jwtService)
-
-// Require authentication
-srv.Route("GET", "/protected",
-    authMw.RequireAuth(),
-    protectedHandler,
-)
-
-// Require specific role
-srv.Route("GET", "/admin",
-    authMw.RequireAuth(),
-    authMw.RequireRole("admin"),
-    adminHandler,
-)
-
-// Require any of multiple roles
-srv.Route("GET", "/moderator",
-    authMw.RequireAuth(),
-    authMw.RequireRole("admin", "moderator"),
-    moderatorHandler,
-)
-
-// Optional authentication
-srv.Route("GET", "/public",
-    authMw.OptionalAuth(),
-    publicHandler,
-)
-```
-
 #### Context Helpers
 
 ```go
 func myHandler(c ctx.Ctx) error {
-    // Get user from context
     user, ok := auth.GetUserFromContext(c)
-    if !ok {
-        return c.Error(401, "Not authenticated")
-    }
-
-    // Get user ID
     userID, _ := auth.GetUserIDFromContext(c)
-
-    // Get role
     role, _ := auth.GetRoleFromContext(c)
 
-    // Check authentication
-    if auth.IsAuthenticated(c) {
-        // User is logged in
-    }
-
-    // Check role
-    if auth.HasRole(c, "admin") {
-        // User is admin
-    }
-
-    if auth.HasAnyRole(c, "admin", "moderator") {
-        // User is admin or moderator
-    }
+    if auth.IsAuthenticated(c) { /* ... */ }
+    if auth.HasRole(c, "admin") { /* ... */ }
+    if auth.HasAnyRole(c, "admin", "moderator") { /* ... */ }
 
     return c.SendJSON(user)
 }
@@ -493,100 +432,120 @@ func myHandler(c ctx.Ctx) error {
 ```go
 srv := server.New("localhost", "8080", 30)
 
-// Add middleware
+// Server-level middleware
 srv.Use(
-    middleware.NewSecurityHeaders(),   // X-Content-Type-Options, X-Frame-Options, CSP, etc.
-    middleware.NewCors(middleware.NewCorsOptions()),
-    middleware.NewLog(logger),
+    middleware.NewRecovery(),           // panic recovery
+    middleware.NewSecurityHeaders(),    // security headers
+    middleware.NewRateLimit(cfg),       // rate limiting
+    middleware.NewCors(corsOpts),       // CORS
+    middleware.NewLog(logger),          // request logging
 )
 
-// Routes
-srv.Route("GET", "/", homeHandler)
-srv.Route("POST", "/users", createUserHandler)
-srv.Route("GET", "/users/{id}", getUserHandler)
-srv.Route("PUT", "/users/{id}", updateUserHandler)
-srv.Route("DELETE", "/users/{id}", deleteUserHandler)
+// Simple routes
+srv.Route(web.MethodGet, "/", homeHandler)
+srv.Route(web.MethodGet, "/users/{id}", getUserHandler)
 
-// Start server
-srv.Start()
+// Route groups
+api := srv.Group("/api/v1", authMiddleware)
+api.Route(web.MethodGet, "/users", listUsersHandler)
+
+// Static files
+srv.Static("/assets/", "./public")
+
+// Start options
+srv.Start()                                    // plain HTTP
+srv.StartTLS("cert.pem", "key.pem")           // HTTPS
+srv.ListenAndShutdown()                        // HTTP + graceful shutdown
+srv.ListenAndShutdownTLS("cert.pem", "key.pem") // HTTPS + graceful shutdown
 ```
 
 ### Context API
 
 ```go
 func handler(c ctx.Ctx) error {
-    // Request
+    // Request info
     method := c.Method()
     path := c.Path()
-    ip := c.UserIP()
-    param := c.Param("id")
+    ip := c.UserIP()              // IPv4 and IPv6 safe
+    param := c.Param("id")       // path or query param
     cookie := c.GetCookie("session")
+    reqID := c.ID()               // unique request ID (UUID)
 
     // Unmarshal body
     var req MyRequest
-    c.UnmarshalBody(&req)
+    c.UnmarshalBody(&req)         // JSON decode with 1MB limit
+
+    // Unmarshal + validate (uses go-playground/validator tags)
+    var req ValidatedRequest
+    if err := c.UnmarshalAndValidate(&req); err != nil {
+        return c.Error(400, err.Error())
+    }
 
     // Response
     c.SendString("Hello")
     c.SendHTML("<h1>Hello</h1>")
     c.SendJSON(map[string]string{"msg": "hello"})
-
-    // Status
     c.WithStatus(201).SendJSON(data)
 
+    // Redirect
+    c.Redirect(http.StatusFound, "/new-location")
+
     // Headers
-    c.SetHeader("X-Custom", "value")
+    c.SetHeader("X-Custom", "value")       // replaces existing value
+    c.AddHeader("X-Custom", "extra")       // appends value
     c.SetCookie("token", "value", time.Hour)
 
-    // Error
+    // Content negotiation
+    c.AcceptsJSON()       // true if Accept header includes application/json
+    c.AcceptsHTML()       // true if Accept header includes text/html
+    c.AcceptsPlainText()  // true if Accept header includes text/plain
+
+    // Error response
     return c.Error(404, "Not found")
 
-    // Session
+    // Session & store
     session := c.Session()
-    session.Data().Set("key", "value")
-
-    // Store (request-scoped)
     c.Store().Set("key", "value")
-    var val string
-    c.Store().Get("key", &val)
 
-    // Next middleware
+    // Context propagation
+    c = c.WithContext(reqCtx) // for deadlines/cancellation
+
+    // Middleware chain
     return c.Next()
 }
 ```
 
-## 🧪 Testing
+### Middleware Reference
+
+| Middleware | Description |
+|---|---|
+| `NewRecovery()` | Recovers from panics, returns 500 |
+| `NewSecurityHeaders()` | Sets CSP, X-Frame-Options, X-Content-Type-Options, etc. |
+| `NewRateLimit(cfg)` | Per-IP rate limiting with fixed-window counter |
+| `NewCors(opts)` | CORS with preflight support |
+| `NewLog(logger)` | Request logging with status codes |
+| `NewBasicAuth(user, pass)` | HTTP Basic Authentication (constant-time) |
+| `NewTimeout(duration)` | Per-route request timeout |
+| `NewSession(cache, autostart)` | Session management backed by cache |
+
+## Testing
 
 ```bash
 # Run all tests
 make test
 
-# Run tests with coverage
-go test ./... -cover
+# Run tests with clean cache
+make test-clean
+
+# Lint
+make lint
 
 # Run specific package tests
 go test ./pkg/auth/jwt/...
 go test ./pkg/database/repository/...
-
-# Verbose output
-go test ./... -v
 ```
 
-### Test Statistics
-
-- **Total Tests:** 56
-- **Pass Rate:** 100%
-- **Coverage:** 100% (core components)
-
-#### Breakdown
-
-- JWT: 16 tests (includes secret key validation)
-- SQL Repository: 18 tests
-- Migration System: 13 tests
-- SQLite: 5 tests
-- Middleware: 4 tests (CORS, security headers)
-
-## 🏗️ Project Structure
+## Project Structure
 
 ```text
 martian-stack/
@@ -618,54 +577,20 @@ martian-stack/
 └── README.md
 ```
 
-## 🔧 Configuration
-
-### Environment Variables
-
-```bash
-# Database
-DB_DRIVER=sqlite           # sqlite, postgres, mysql
-DB_PATH=./app.db          # SQLite
-DB_HOST=localhost         # PostgreSQL/MySQL
-DB_PORT=5432              # PostgreSQL/MySQL
-DB_NAME=myapp
-DB_USER=user
-DB_PASSWORD=password
-
-# JWT (secret must be at least 32 bytes)
-JWT_SECRET=your-secret-key-at-least-32-bytes!
-JWT_ACCESS_EXPIRY=15m
-JWT_REFRESH_EXPIRY=168h   # 7 days
-
-# Server
-SERVER_HOST=localhost
-SERVER_PORT=8080
-SERVER_TIMEOUT=30
-```
-
-## 📋 Requirements
+## Requirements
 
 - **Go:** 1.25 or higher
 - **Redis:** Optional (for cache/sessions)
-- **PostgreSQL:** Optional (if using PostgreSQL)
-- **MySQL/MariaDB:** Optional (if using MySQL)
+- **PostgreSQL:** Optional
+- **MySQL/MariaDB:** Optional
 
-## 🤝 Contributing
-
-This is a private project, but contributions from team members are welcome.
-
-1. Create a feature branch (`git checkout -b feature/amazing-feature`)
-2. Commit your changes (`git commit -m 'Add amazing feature'`)
-3. Push to the branch (`git push origin feature/amazing-feature`)
-4. Open a Pull Request
-
-## 📝 License
+## License
 
 Private - All rights reserved.
 
-## 🙏 Credits
+## Credits
 
-Built with ❤️ by the Martianoids team.
+Built by the Martianoids team.
 
 ### Dependencies
 
@@ -674,8 +599,5 @@ Built with ❤️ by the Martianoids team.
 - [modernc.org/sqlite](https://gitlab.com/cznic/sqlite) - Pure Go SQLite
 - [golang-jwt/jwt](https://github.com/golang-jwt/jwt) - JWT implementation
 - [go-playground/validator](https://github.com/go-playground/validator) - Validation
+- [go-redis](https://github.com/redis/go-redis) - Redis client
 - [goht](https://github.com/stackus/goht) - HTMX templates
-
----
-
-**Questions?** Contact the team or check the documentation in each package.

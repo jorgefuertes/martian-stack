@@ -2,11 +2,13 @@ package ctx
 
 import (
 	"encoding/json"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
+	"github.com/go-playground/validator/v10"
 )
 
 func (c Ctx) Method() string {
@@ -22,7 +24,12 @@ func (c Ctx) Path() string {
 }
 
 func (c Ctx) UserIP() string {
-	return strings.Split(c.req.RemoteAddr, ":")[0]
+	host, _, err := net.SplitHostPort(c.req.RemoteAddr)
+	if err != nil {
+		return c.req.RemoteAddr
+	}
+
+	return host
 }
 
 func (c Ctx) Param(key string) string {
@@ -50,8 +57,21 @@ func (c Ctx) GetCookie(name string) string {
 // MaxBodySize is the default maximum request body size (1 MB)
 const MaxBodySize int64 = 1 << 20
 
-// unmarshal the request body into dest, limiting the body size to prevent abuse
+// UnmarshalBody deserializes the JSON request body into dest,
+// limiting the body size to prevent abuse.
 func (c Ctx) UnmarshalBody(dest any) error {
 	limited := http.MaxBytesReader(c.wr, c.req.Body, MaxBodySize)
 	return json.NewDecoder(limited).Decode(dest)
+}
+
+var validate = validator.New(validator.WithRequiredStructEnabled())
+
+// UnmarshalAndValidate deserializes the JSON request body into dest
+// and runs struct validation using go-playground/validator tags.
+func (c Ctx) UnmarshalAndValidate(dest any) error {
+	if err := c.UnmarshalBody(dest); err != nil {
+		return err
+	}
+
+	return validate.Struct(dest)
 }
