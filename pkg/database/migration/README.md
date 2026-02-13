@@ -144,7 +144,7 @@ MyMigration.Down = `-- Rollback SQL here`
 
 ## Estructura de Archivos
 
-```
+```text
 pkg/database/migration/
 ├── migration.go              # Core migrator
 ├── generator.go              # Helpers para generar migraciones

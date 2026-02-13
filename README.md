@@ -246,7 +246,8 @@ db, _ := sqlite.New(sqlite.DefaultConfig("./app.db"))
 db, _ := sqlite.NewInMemory()
 ```
 
-**PostgreSQL**
+#### PostgreSQL
+
 ```go
 db, _ := postgres.New(&postgres.Config{
     Host:     "localhost",
@@ -258,7 +259,8 @@ db, _ := postgres.New(&postgres.Config{
 })
 ```
 
-**MySQL/MariaDB**
+#### MySQL/MariaDB
+
 ```go
 db, _ := mysql.New(&mysql.Config{
     Host:     "localhost",
@@ -580,7 +582,7 @@ go test ./... -v
 
 ## 🏗️ Project Structure
 
-```
+```text
 martian-stack/
 ├── cmd/
 │   └── testserver/          # Example server
