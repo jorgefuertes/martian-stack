@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/jorgefuertes/martian-stack/pkg/helper"
 	"github.com/go-playground/validator/v10"
+	"github.com/jorgefuertes/martian-stack/pkg/helper"
 )
 
 func (c Ctx) Method() string {

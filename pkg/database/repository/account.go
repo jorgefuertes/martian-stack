@@ -6,9 +6,9 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jorgefuertes/martian-stack/pkg/database"
 	"github.com/jorgefuertes/martian-stack/pkg/server/adapter"
-	"github.com/google/uuid"
 )
 
 // SQLAccountRepository implements adapter.AccountRepository using SQL database

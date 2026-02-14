@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/jorgefuertes/martian-stack/pkg/database"
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
+	"github.com/jorgefuertes/martian-stack/pkg/database"
 )
 
 const driverName = "pgx"

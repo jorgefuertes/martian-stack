@@ -4,10 +4,10 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/jorgefuertes/martian-stack/pkg/server/adapter"
 	"github.com/jorgefuertes/martian-stack/pkg/server/session"
 	"github.com/jorgefuertes/martian-stack/pkg/store"
-	"github.com/google/uuid"
 )
 
 // state holds mutable fields shared across Ctx copies.

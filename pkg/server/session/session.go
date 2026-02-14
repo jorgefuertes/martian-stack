@@ -1,8 +1,8 @@
 package session
 
 import (
-	"github.com/jorgefuertes/martian-stack/pkg/store"
 	"github.com/google/uuid"
+	"github.com/jorgefuertes/martian-stack/pkg/store"
 )
 
 type Session struct {

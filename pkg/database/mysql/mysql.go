@@ -3,8 +3,8 @@ package mysql
 import (
 	"fmt"
 
-	"github.com/jorgefuertes/martian-stack/pkg/database"
 	_ "github.com/go-sql-driver/mysql" // MySQL/MariaDB driver
+	"github.com/jorgefuertes/martian-stack/pkg/database"
 )
 
 const driverName = "mysql"
