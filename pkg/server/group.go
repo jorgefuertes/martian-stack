@@ -1,8 +1,8 @@
 package server
 
 import (
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
+	"github.com/jorgefuertes/martian-stack/pkg/server/ctx"
+	"github.com/jorgefuertes/martian-stack/pkg/server/web"
 )
 
 // Group represents a route group with a shared path prefix and middleware.

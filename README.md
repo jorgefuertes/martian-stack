@@ -4,7 +4,7 @@ A complete, production-ready web framework for building modern applications in G
 
 [![Go Version](https://img.shields.io/badge/Go-1.25+-00ADD8?style=flat&logo=go)](https://go.dev/)
 [![Tests](https://img.shields.io/badge/tests-184%20passing-success)](/)
-[![License](https://img.shields.io/badge/license-Private-red)](/)
+[![License](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE.md)
 
 ## Features
 
@@ -71,7 +71,7 @@ A complete, production-ready web framework for building modern applications in G
 ## Installation
 
 ```bash
-go get git.martianoids.com/martianoids/martian-stack
+go get github.com/jorgefuertes/martian-stack
 ```
 
 ## Quick Start
@@ -84,11 +84,11 @@ package main
 import (
     "os"
 
-    "git.martianoids.com/martianoids/martian-stack/pkg/server"
-    "git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
-    "git.martianoids.com/martianoids/martian-stack/pkg/server/middleware"
-    "git.martianoids.com/martianoids/martian-stack/pkg/server/web"
-    "git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
+    "github.com/jorgefuertes/martian-stack/pkg/server"
+    "github.com/jorgefuertes/martian-stack/pkg/server/ctx"
+    "github.com/jorgefuertes/martian-stack/pkg/server/middleware"
+    "github.com/jorgefuertes/martian-stack/pkg/server/web"
+    "github.com/jorgefuertes/martian-stack/pkg/service/logger"
 )
 
 func main() {
@@ -190,17 +190,17 @@ import (
     "context"
     "os"
 
-    "git.martianoids.com/martianoids/martian-stack/pkg/auth"
-    authjwt "git.martianoids.com/martianoids/martian-stack/pkg/auth/jwt"
-    "git.martianoids.com/martianoids/martian-stack/pkg/database/sqlite"
-    "git.martianoids.com/martianoids/martian-stack/pkg/database/repository"
-    "git.martianoids.com/martianoids/martian-stack/pkg/database/migration"
-    "git.martianoids.com/martianoids/martian-stack/pkg/database/migration/migrations"
-    "git.martianoids.com/martianoids/martian-stack/pkg/server"
-    "git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
-    "git.martianoids.com/martianoids/martian-stack/pkg/server/middleware"
-    "git.martianoids.com/martianoids/martian-stack/pkg/server/web"
-    "git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
+    "github.com/jorgefuertes/martian-stack/pkg/auth"
+    authjwt "github.com/jorgefuertes/martian-stack/pkg/auth/jwt"
+    "github.com/jorgefuertes/martian-stack/pkg/database/sqlite"
+    "github.com/jorgefuertes/martian-stack/pkg/database/repository"
+    "github.com/jorgefuertes/martian-stack/pkg/database/migration"
+    "github.com/jorgefuertes/martian-stack/pkg/database/migration/migrations"
+    "github.com/jorgefuertes/martian-stack/pkg/server"
+    "github.com/jorgefuertes/martian-stack/pkg/server/ctx"
+    "github.com/jorgefuertes/martian-stack/pkg/server/middleware"
+    "github.com/jorgefuertes/martian-stack/pkg/server/web"
+    "github.com/jorgefuertes/martian-stack/pkg/service/logger"
 )
 
 func main() {
@@ -316,7 +316,7 @@ Create a migration:
 // pkg/database/migration/migrations/002_add_users.go
 package migrations
 
-import "git.martianoids.com/martianoids/martian-stack/pkg/database/migration"
+import "github.com/jorgefuertes/martian-stack/pkg/database/migration"
 
 var AddUsers = migration.Migration{
     Version:     20260213000001,
@@ -586,11 +586,11 @@ martian-stack/
 
 ## License
 
-Private - All rights reserved.
+This project is licensed under the [GNU General Public License v3.0](LICENSE.md).
 
 ## Credits
 
-Built by the Martianoids team.
+Built by [Jorge Fuertes](https://github.com/jorgefuertes).
 
 ### Dependencies
 

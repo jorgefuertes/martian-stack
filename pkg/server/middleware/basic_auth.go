@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strings"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
+	"github.com/jorgefuertes/martian-stack/pkg/server/ctx"
+	"github.com/jorgefuertes/martian-stack/pkg/server/web"
 )
 
 var basicAuthRegexp = regexp.MustCompile(`^Basic ([a-zA-Z0-9+/=]*)$`)

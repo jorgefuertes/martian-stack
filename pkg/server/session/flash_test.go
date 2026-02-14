@@ -3,7 +3,7 @@ package session_test
 import (
 	"testing"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/session"
+	"github.com/jorgefuertes/martian-stack/pkg/server/session"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

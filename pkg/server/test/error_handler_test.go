@@ -3,8 +3,8 @@ package server_test
 import (
 	"fmt"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/servererror"
+	"github.com/jorgefuertes/martian-stack/pkg/server/ctx"
+	"github.com/jorgefuertes/martian-stack/pkg/server/servererror"
 )
 
 func testErrorHandlerfunc(c ctx.Ctx, err error) {

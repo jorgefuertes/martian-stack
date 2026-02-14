@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/adapter"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/session"
-	"git.martianoids.com/martianoids/martian-stack/pkg/store"
+	"github.com/jorgefuertes/martian-stack/pkg/server/adapter"
+	"github.com/jorgefuertes/martian-stack/pkg/server/session"
+	"github.com/jorgefuertes/martian-stack/pkg/store"
 	"github.com/google/uuid"
 )
 

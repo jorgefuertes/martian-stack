@@ -3,8 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/servererror"
+	"github.com/jorgefuertes/martian-stack/pkg/server/ctx"
+	"github.com/jorgefuertes/martian-stack/pkg/server/servererror"
 )
 
 type loggerService interface {

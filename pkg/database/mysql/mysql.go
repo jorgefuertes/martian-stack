@@ -3,7 +3,7 @@ package mysql
 import (
 	"fmt"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/database"
+	"github.com/jorgefuertes/martian-stack/pkg/database"
 	_ "github.com/go-sql-driver/mysql" // MySQL/MariaDB driver
 )
 

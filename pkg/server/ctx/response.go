@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
+	"github.com/jorgefuertes/martian-stack/pkg/server/web"
 )
 
 func (c Ctx) SetContentType(contentType string) {

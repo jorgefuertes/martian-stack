@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/middleware"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/servererror"
+	"github.com/jorgefuertes/martian-stack/pkg/server/ctx"
+	"github.com/jorgefuertes/martian-stack/pkg/server/middleware"
+	"github.com/jorgefuertes/martian-stack/pkg/server/servererror"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

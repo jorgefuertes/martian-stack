@@ -1,6 +1,6 @@
 package migrations
 
-import "git.martianoids.com/martianoids/martian-stack/pkg/database/migration"
+import "github.com/jorgefuertes/martian-stack/pkg/database/migration"
 
 // AddTokenTables creates tables for refresh tokens and password reset tokens
 var AddTokenTables = migration.Migration{

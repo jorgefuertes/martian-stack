@@ -18,7 +18,7 @@ Sistema de migraciones para gestionar el schema de la base de datos de forma ver
 ```go
 package migrations
 
-import "git.martianoids.com/martianoids/martian-stack/pkg/database/migration"
+import "github.com/jorgefuertes/martian-stack/pkg/database/migration"
 
 var AddUserRoles = migration.Migration{
     Version:     20260212120000,
@@ -44,10 +44,10 @@ import (
     "context"
     "log"
 
-    "git.martianoids.com/martianoids/martian-stack/pkg/database"
-    "git.martianoids.com/martianoids/martian-stack/pkg/database/migration"
-    "git.martianoids.com/martianoids/martian-stack/pkg/database/migration/migrations"
-    "git.martianoids.com/martianoids/martian-stack/pkg/database/sqlite"
+    "github.com/jorgefuertes/martian-stack/pkg/database"
+    "github.com/jorgefuertes/martian-stack/pkg/database/migration"
+    "github.com/jorgefuertes/martian-stack/pkg/database/migration/migrations"
+    "github.com/jorgefuertes/martian-stack/pkg/database/sqlite"
 )
 
 func main() {
@@ -114,7 +114,7 @@ package main
 
 import (
     "fmt"
-    "git.martianoids.com/martianoids/martian-stack/pkg/database/migration"
+    "github.com/jorgefuertes/martian-stack/pkg/database/migration"
 )
 
 func main() {

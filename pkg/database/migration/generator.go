@@ -40,7 +40,7 @@ func Template(name string) string {
 	version := GenerateVersion()
 	return fmt.Sprintf(`package migrations
 
-import "git.martianoids.com/martianoids/martian-stack/pkg/database/migration"
+import "github.com/jorgefuertes/martian-stack/pkg/database/migration"
 
 // Migration%d_%s
 var Migration%d = migration.Migration{

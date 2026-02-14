@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/auth/jwt"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/adapter"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
+	"github.com/jorgefuertes/martian-stack/pkg/auth/jwt"
+	"github.com/jorgefuertes/martian-stack/pkg/server/adapter"
+	"github.com/jorgefuertes/martian-stack/pkg/server/ctx"
 )
 
 // LoginRequest represents a login request payload

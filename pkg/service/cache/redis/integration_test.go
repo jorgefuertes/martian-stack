@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
+	"github.com/jorgefuertes/martian-stack/pkg/service/logger"
 
-	redis "git.martianoids.com/martianoids/martian-stack/pkg/service/cache/redis"
+	redis "github.com/jorgefuertes/martian-stack/pkg/service/cache/redis"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

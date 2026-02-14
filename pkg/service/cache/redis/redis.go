@@ -3,7 +3,7 @@ package redis
 import (
 	"fmt"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
+	"github.com/jorgefuertes/martian-stack/pkg/service/logger"
 
 	driver "github.com/redis/go-redis/v9"
 )

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/database"
+	"github.com/jorgefuertes/martian-stack/pkg/database"
 	_ "modernc.org/sqlite" // SQLite driver
 )
 

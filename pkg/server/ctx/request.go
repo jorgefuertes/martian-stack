@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
+	"github.com/jorgefuertes/martian-stack/pkg/helper"
 	"github.com/go-playground/validator/v10"
 )
 

@@ -6,7 +6,7 @@ import (
 	"sort"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/database"
+	"github.com/jorgefuertes/martian-stack/pkg/database"
 )
 
 // Migration represents a database migration

@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/cache/memory"
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/cache/redis"
+	"github.com/jorgefuertes/martian-stack/pkg/service/cache/memory"
+	"github.com/jorgefuertes/martian-stack/pkg/service/cache/redis"
 )
 
 type Service interface {

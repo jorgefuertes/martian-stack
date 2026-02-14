@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
+	"github.com/jorgefuertes/martian-stack/pkg/server/ctx"
+	"github.com/jorgefuertes/martian-stack/pkg/server/web"
 )
 
 type CorsOptions struct {

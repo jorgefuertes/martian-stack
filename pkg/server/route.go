@@ -3,9 +3,9 @@ package server
 import (
 	"net/http"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
+	"github.com/jorgefuertes/martian-stack/pkg/helper"
+	"github.com/jorgefuertes/martian-stack/pkg/server/ctx"
+	"github.com/jorgefuertes/martian-stack/pkg/server/web"
 )
 
 // Route registers a route handler for the given method and path.

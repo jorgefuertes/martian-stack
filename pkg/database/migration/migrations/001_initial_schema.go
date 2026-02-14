@@ -1,6 +1,6 @@
 package migrations
 
-import "git.martianoids.com/martianoids/martian-stack/pkg/database/migration"
+import "github.com/jorgefuertes/martian-stack/pkg/database/migration"
 
 // InitialSchema creates the initial accounts table
 var InitialSchema = migration.Migration{

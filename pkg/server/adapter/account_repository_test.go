@@ -3,7 +3,7 @@ package adapter_test
 import (
 	"testing"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/adapter"
+	"github.com/jorgefuertes/martian-stack/pkg/server/adapter"
 	"github.com/stretchr/testify/require"
 )
 

@@ -1,9 +1,9 @@
 package server
 
 import (
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/servererror"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/view"
+	"github.com/jorgefuertes/martian-stack/pkg/server/ctx"
+	"github.com/jorgefuertes/martian-stack/pkg/server/servererror"
+	"github.com/jorgefuertes/martian-stack/pkg/server/view"
 )
 
 type ErrorHandler func(c ctx.Ctx, err error)

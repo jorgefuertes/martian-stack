@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/session"
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/cache"
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/cache/memory"
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/cache/redis"
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
+	"github.com/jorgefuertes/martian-stack/pkg/server/session"
+	"github.com/jorgefuertes/martian-stack/pkg/service/cache"
+	"github.com/jorgefuertes/martian-stack/pkg/service/cache/memory"
+	"github.com/jorgefuertes/martian-stack/pkg/service/cache/redis"
+	"github.com/jorgefuertes/martian-stack/pkg/service/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

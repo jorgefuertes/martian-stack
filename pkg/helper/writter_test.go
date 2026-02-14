@@ -5,7 +5,7 @@ import (
 	"io"
 	"testing"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
+	"github.com/jorgefuertes/martian-stack/pkg/helper"
 
 	"github.com/jaswdr/faker/v2"
 	"github.com/stretchr/testify/assert"

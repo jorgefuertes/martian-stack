@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/database"
+	"github.com/jorgefuertes/martian-stack/pkg/database"
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 )
 

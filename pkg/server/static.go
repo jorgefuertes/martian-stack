@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
+	"github.com/jorgefuertes/martian-stack/pkg/server/web"
 )
 
 // Static serves files from the given directory under the specified URL prefix.

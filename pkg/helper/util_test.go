@@ -3,7 +3,7 @@ package helper_test
 import (
 	"testing"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
+	"github.com/jorgefuertes/martian-stack/pkg/helper"
 )
 
 func TestReplacePathParams(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
+	"github.com/jorgefuertes/martian-stack/pkg/server/ctx"
 )
 
 // RateLimitConfig configures the rate limiter.

@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/auth/jwt"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
+	"github.com/jorgefuertes/martian-stack/pkg/auth/jwt"
+	"github.com/jorgefuertes/martian-stack/pkg/server/ctx"
 )
 
 // Middleware provides authentication middleware

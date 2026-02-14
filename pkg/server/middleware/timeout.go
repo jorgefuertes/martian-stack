@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
+	"github.com/jorgefuertes/martian-stack/pkg/server/ctx"
 )
 
 // NewTimeout returns a middleware that cancels the request context after the

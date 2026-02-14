@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/database/migration"
-	"git.martianoids.com/martianoids/martian-stack/pkg/database/migration/migrations"
-	"git.martianoids.com/martianoids/martian-stack/pkg/database/sqlite"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/adapter"
+	"github.com/jorgefuertes/martian-stack/pkg/database/migration"
+	"github.com/jorgefuertes/martian-stack/pkg/database/migration/migrations"
+	"github.com/jorgefuertes/martian-stack/pkg/database/sqlite"
+	"github.com/jorgefuertes/martian-stack/pkg/server/adapter"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

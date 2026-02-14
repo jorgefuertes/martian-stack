@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/ctx"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/web"
+	"github.com/jorgefuertes/martian-stack/pkg/server"
+	"github.com/jorgefuertes/martian-stack/pkg/server/ctx"
+	"github.com/jorgefuertes/martian-stack/pkg/server/web"
 )
 
 func registerRoutes(srv *server.Server) {

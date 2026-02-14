@@ -3,7 +3,7 @@ package store_test
 import (
 	"testing"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/store"
+	"github.com/jorgefuertes/martian-stack/pkg/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

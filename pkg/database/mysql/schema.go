@@ -3,7 +3,7 @@ package mysql
 import (
 	"context"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/database"
+	"github.com/jorgefuertes/martian-stack/pkg/database"
 )
 
 // AccountsTableSchema is the SQL schema for the accounts table

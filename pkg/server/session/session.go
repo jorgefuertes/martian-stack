@@ -1,7 +1,7 @@
 package session
 
 import (
-	"git.martianoids.com/martianoids/martian-stack/pkg/store"
+	"github.com/jorgefuertes/martian-stack/pkg/store"
 	"github.com/google/uuid"
 )
 

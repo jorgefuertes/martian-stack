@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/helper"
-	"git.martianoids.com/martianoids/martian-stack/pkg/service/logger"
+	"github.com/jorgefuertes/martian-stack/pkg/helper"
+	"github.com/jorgefuertes/martian-stack/pkg/service/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

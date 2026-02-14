@@ -6,8 +6,8 @@ import (
 	"errors"
 	"time"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/database"
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/adapter"
+	"github.com/jorgefuertes/martian-stack/pkg/database"
+	"github.com/jorgefuertes/martian-stack/pkg/server/adapter"
 	"github.com/google/uuid"
 )
 

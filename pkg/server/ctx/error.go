@@ -3,7 +3,7 @@ package ctx
 import (
 	"net/http"
 
-	"git.martianoids.com/martianoids/martian-stack/pkg/server/servererror"
+	"github.com/jorgefuertes/martian-stack/pkg/server/servererror"
 )
 
 // helper to compose an HttpError to be used as error return

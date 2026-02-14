@@ -1,4 +1,4 @@
-module git.martianoids.com/martianoids/martian-stack
+module github.com/jorgefuertes/martian-stack
 
 go 1.25
 
