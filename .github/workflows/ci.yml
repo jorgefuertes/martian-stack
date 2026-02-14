@@ -31,7 +31,7 @@ jobs:
 
       - name: Gofumpt
         run: |
-          out=$(find . -name '*.go' ! -name '*.goht.go' ! -name '*_templ.go' -print0 | xargs -0 go tool gofumpt -d -l -extra)
+          out=$(go tool gofumpt -d -l -extra . | grep -v '.goht.go' | grep -v '_templ.go' || true)
           if [ -n "$out" ]; then
             echo "$out"
             echo "::error::gofumpt found unformatted files"
@@ -40,7 +40,7 @@ jobs:
 
       - name: Golines
         run: |
-          out=$(find . -name '*.go' ! -name '*.goht.go' ! -name '*_templ.go' -print0 | xargs -0 go tool golines -l -m 120 --no-reformat-tags)
+          out=$(go tool golines -l -m 120 --no-reformat-tags . | grep -v '.goht.go' | grep -v '_templ.go' || true)
           if [ -n "$out" ]; then
             echo "$out"
             echo "::error::golines found lines exceeding 120 characters"
