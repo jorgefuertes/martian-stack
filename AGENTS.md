@@ -41,3 +41,6 @@ When ending a work session, you MUST complete ALL steps below. Work is NOT compl
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
 
+### Test Rules
+
+- Use always testify for the test assetions and requires.

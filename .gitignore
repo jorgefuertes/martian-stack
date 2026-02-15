@@ -1,7 +1,6 @@
 *.code-workspace
 /volumes
 .zed
-.trunk
 .vscode
 
 .zip
