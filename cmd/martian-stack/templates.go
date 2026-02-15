@@ -166,7 +166,7 @@ const tplGoMod = `module {{.ModulePath}}
 go 1.25
 
 require (
-	github.com/jorgefuertes/martian-stack v0.0.0
+	github.com/jorgefuertes/martian-stack {{.FrameworkVersion}}
 )
 `
 

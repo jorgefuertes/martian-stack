@@ -64,8 +64,9 @@ type ProjectConfig struct {
 	HasAdmin bool
 
 	// Computed
-	HasDatabase bool
-	HasRedis    bool
+	HasDatabase      bool
+	HasRedis         bool
+	FrameworkVersion string
 
 	DefaultHost    string
 	DefaultPort    string
@@ -103,6 +104,7 @@ func main() {
 	// Computed fields
 	cfg.HasDatabase = cfg.Database != "none"
 	cfg.HasRedis = cfg.Cache == "redis"
+	cfg.FrameworkVersion = getVersion()
 	cfg.DefaultHost = "localhost"
 	cfg.DefaultPort = "8080"
 	cfg.DefaultTimeout = 15

@@ -15,17 +15,18 @@ import (
 // baseConfig returns a ProjectConfig with computed fields set.
 func baseConfig(db, cache string, auth, admin bool, mws ...string) ProjectConfig {
 	cfg := ProjectConfig{
-		ProjectName:    "testapp",
-		ModulePath:     "github.com/test/testapp",
-		Database:       db,
-		Cache:          cache,
-		HasAuth:        auth,
-		HasAdmin:       admin,
-		HasDatabase:    db != "none",
-		HasRedis:       cache == "redis",
-		DefaultHost:    "localhost",
-		DefaultPort:    "8080",
-		DefaultTimeout: 15,
+		ProjectName:      "testapp",
+		ModulePath:       "github.com/test/testapp",
+		Database:         db,
+		Cache:            cache,
+		HasAuth:          auth,
+		HasAdmin:         admin,
+		HasDatabase:      db != "none",
+		HasRedis:         cache == "redis",
+		FrameworkVersion: "v0.0.0",
+		DefaultHost:      "localhost",
+		DefaultPort:      "8080",
+		DefaultTimeout:   15,
 	}
 
 	for _, mw := range mws {
