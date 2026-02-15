@@ -74,6 +74,47 @@ A complete, production-ready web framework for building modern applications in G
 go get github.com/jorgefuertes/martian-stack
 ```
 
+## Project Generator
+
+Scaffold a new project interactively:
+
+```bash
+go install github.com/jorgefuertes/martian-stack/cmd/martian-stack@latest
+martian-stack
+```
+
+The TUI guides you through choosing database, cache, middlewares,
+JWT authentication, and admin panel options. It generates a ready-to-run
+project with all the boilerplate wired up.
+
+### Non-interactive mode
+
+```bash
+martian-stack -y \
+  -name=myapp \
+  -module=github.com/user/myapp \
+  -output=./myapp \
+  -db=sqlite \
+  -cache=memory \
+  -auth \
+  -admin \
+  -middlewares=cors,logging,security,recovery,ratelimit,timeout
+```
+
+Available flags:
+
+| Flag | Default | Description |
+|---|---|---|
+| `-name` | | Project name (required) |
+| `-module` | | Go module path (required) |
+| `-output` | | Output directory (required) |
+| `-db` | `sqlite` | Database: `sqlite`, `postgres`, `mysql`, `none` |
+| `-cache` | `memory` | Cache: `memory`, `redis` |
+| `-auth` | `true` | Include JWT authentication |
+| `-admin` | `true` | Include admin panel with user CRUD |
+| `-middlewares` | `cors,logging,security,recovery` | Comma-separated middleware list |
+| `-y` | `false` | Skip confirmation (non-interactive) |
+
 ## Quick Start
 
 ### 1. Basic Server
@@ -550,6 +591,7 @@ go test ./pkg/database/repository/...
 ```text
 martian-stack/
 ├── cmd/
+│   ├── martian-stack/       # Project generator CLI
 │   └── testserver/          # Example server
 ├── pkg/
 │   ├── auth/                # Authentication system
@@ -601,3 +643,5 @@ Built by [Jorge Fuertes](https://github.com/jorgefuertes).
 - [go-playground/validator](https://github.com/go-playground/validator) - Validation
 - [go-redis](https://github.com/redis/go-redis) - Redis client
 - [goht](https://github.com/stackus/goht) - HTMX templates
+- [huh](https://github.com/charmbracelet/huh) - Interactive terminal forms
+- [lipgloss](https://github.com/charmbracelet/lipgloss) - Terminal styling
