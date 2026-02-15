@@ -110,7 +110,6 @@ func main() {
 	)
 
 	// Middlewares
-	logMw := middleware.NewLog(l)
 	srv.Use(
 {{- if .MwRecovery}}
 		middleware.NewRecovery(),
@@ -128,7 +127,7 @@ func main() {
 		middleware.NewTimeout(time.Duration(envOrInt("TIMEOUT", {{.DefaultTimeout}}))*time.Second),
 {{- end}}
 {{- if .MwLogging}}
-		logMw,
+		middleware.NewLog(l),
 {{- end}}
 	)
 
