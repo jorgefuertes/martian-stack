@@ -34,3 +34,5 @@ Issues are managed with **bd** (beads). The database is `.beads/issues.jsonl`.
 - Commit messages in English
 - Push after committing — work is not done until pushed
 - Run `bd sync` before pushing
+- Run `make lint` before pushing
+- Run `make test` before to pushing
