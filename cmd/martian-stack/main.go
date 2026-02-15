@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 	"text/template"
 
@@ -12,17 +13,35 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// version is set via -ldflags at build time. Falls back to module info or "dev".
+var version = "dev"
+
+func getVersion() string {
+	if version != "dev" {
+		return version
+	}
+
+	if info, ok := debug.ReadBuildInfo(); ok &&
+		info.Main.Version != "(devel)" &&
+		info.Main.Version != "" {
+		return info.Main.Version
+	}
+
+	return version
+}
+
 // CLI flags for non-interactive mode.
 var (
-	flagName   = flag.String("name", "", "Project name")
-	flagModule = flag.String("module", "", "Go module path")
-	flagOutput = flag.String("output", "", "Output directory")
-	flagDB     = flag.String("db", "sqlite", "Database: sqlite, postgres, mysql, none")
-	flagCache  = flag.String("cache", "memory", "Cache: memory, redis")
-	flagAuth   = flag.Bool("auth", true, "Include JWT authentication")
-	flagAdmin  = flag.Bool("admin", true, "Include admin panel")
-	flagMw     = flag.String("middlewares", "cors,logging,security,recovery", "Comma-separated middlewares")
-	flagYes    = flag.Bool("y", false, "Skip confirmation (non-interactive)")
+	flagName    = flag.String("name", "", "Project name")
+	flagModule  = flag.String("module", "", "Go module path")
+	flagOutput  = flag.String("output", "", "Output directory")
+	flagDB      = flag.String("db", "sqlite", "Database: sqlite, postgres, mysql, none")
+	flagCache   = flag.String("cache", "memory", "Cache: memory, redis")
+	flagAuth    = flag.Bool("auth", true, "Include JWT authentication")
+	flagAdmin   = flag.Bool("admin", true, "Include admin panel")
+	flagMw      = flag.String("middlewares", "cors,logging,security,recovery", "Comma-separated middlewares")
+	flagYes     = flag.Bool("y", false, "Skip confirmation (non-interactive)")
+	flagVersion = flag.Bool("version", false, "Print version and exit")
 )
 
 // ProjectConfig holds all user choices for project generation.
@@ -55,6 +74,11 @@ type ProjectConfig struct {
 
 func main() {
 	flag.Parse()
+
+	if *flagVersion {
+		fmt.Printf("martian-stack %s\n", getVersion())
+		os.Exit(0)
+	}
 
 	printBanner()
 
@@ -151,7 +175,11 @@ func printBanner() {
 		Foreground(lipgloss.Color("#888888")).
 		Render("Project Generator")
 
-	fmt.Printf("\n  %s  %s\n\n", title, subtitle)
+	ver := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#555555")).
+		Render(getVersion())
+
+	fmt.Printf("\n  %s  %s  %s\n\n", title, subtitle, ver)
 }
 
 // --- Form ---
