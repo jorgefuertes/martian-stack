@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/jorgefuertes/martian-stack/pkg/helper"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestReplacePathParams(t *testing.T) {
@@ -24,9 +25,7 @@ func TestReplacePathParams(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.path, func(t *testing.T) {
 			got := helper.ReplacePathParams(tc.path)
-			if got != tc.want {
-				t.Errorf("replacePathParams(%q) = %q, want %q", tc.path, got, tc.want)
-			}
+			assert.Equal(t, tc.want, got)
 		})
 	}
 }
