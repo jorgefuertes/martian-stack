@@ -281,7 +281,7 @@ func TestTemplateContentEnvExample(t *testing.T) {
 
 	t.Run("includes sqlite DSN", func(t *testing.T) {
 		out := renderTemplate(t, tplEnvExample, baseConfig("sqlite", "memory", false, false))
-		assert.Contains(t, out, "DB_DRIVER=sqlite3")
+		assert.Contains(t, out, "DB_DRIVER=sqlite")
 	})
 
 	t.Run("includes postgres DSN", func(t *testing.T) {

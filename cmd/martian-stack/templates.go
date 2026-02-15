@@ -196,7 +196,7 @@ TIMEOUT=15
 {{- if eq .Database "sqlite"}}
 
 # Database (SQLite)
-DB_DRIVER=sqlite3
+DB_DRIVER=sqlite
 DB_DSN=./{{.ProjectName}}.db
 {{- end}}
 {{- if eq .Database "postgres"}}
@@ -320,7 +320,7 @@ func envOr(key, fallback string) string {
 // Connect creates a new database connection using environment variables
 func Connect() (database.Database, error) {
 {{- if eq .Database "sqlite"}}
-	driver := envOr("DB_DRIVER", "sqlite3")
+	driver := envOr("DB_DRIVER", "sqlite")
 	dsn := envOr("DB_DSN", "./{{.ProjectName}}.db")
 {{- end}}
 {{- if eq .Database "postgres"}}
